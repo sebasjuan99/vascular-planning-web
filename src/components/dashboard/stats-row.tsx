@@ -8,8 +8,8 @@ export default function StatsRow({ total, evar, fevar }: StatsRowProps) {
     <div className="grid grid-cols-3 gap-3 mb-6">
       {[
         { label: 'Total casos', value: total, color: 'text-vp-dark' },
-        { label: 'EVAR', value: evar, color: 'text-vp-blue' },
-        { label: 'FEVAR', value: fevar, color: 'text-vp-red' },
+        { label: 'EVAR', value: evar, color: 'text-vp-red' },
+        { label: 'FEVAR', value: fevar, color: 'text-vp-blue' },
       ].map((s) => (
         <div key={s.label} className="bg-white border border-vp-border rounded-lg p-4">
           <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>

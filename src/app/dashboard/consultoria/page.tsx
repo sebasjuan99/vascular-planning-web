@@ -1,10 +1,10 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Case } from '@/lib/types'
 
 export default function ConsultoriaPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [cases, setCases] = useState<Case[]>([])
   const [form, setForm] = useState({ caseId: '', description: '', urgency: 'electiva' })
   const [submitted, setSubmitted] = useState(false)
@@ -20,7 +20,7 @@ export default function ConsultoriaPage() {
     e.preventDefault()
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setLoading(false); return }
 
     await supabase.from('consultations').insert({
       user_id: user.id,

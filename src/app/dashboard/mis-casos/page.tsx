@@ -12,6 +12,7 @@ export default async function MisCasosPage() {
   const { data: cases } = await supabase
     .from('cases')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   const allCases = cases || []
