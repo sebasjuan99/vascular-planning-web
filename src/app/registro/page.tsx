@@ -1,11 +1,9 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function RegistroPage() {
-  const supabase = createClient()
   const [form, setForm] = useState({
     nombre: '', apellido: '', email: '',
     especialidad: '', institucion: '', password: ''
@@ -22,6 +20,7 @@ export default function RegistroPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    const supabase = createClient()
 
     const { data, error } = await supabase.auth.signUp({
       email: form.email,

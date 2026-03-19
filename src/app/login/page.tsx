@@ -1,5 +1,4 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -7,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -17,6 +15,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
@@ -25,6 +24,11 @@ export default function LoginPage() {
     }
     router.push('/dashboard/mis-casos')
     router.refresh()
+  }
+
+  function handleResetPassword() {
+    const supabase = createClient()
+    supabase.auth.resetPasswordForEmail(email)
   }
 
   return (
@@ -64,7 +68,7 @@ export default function LoginPage() {
           <div className="text-right">
             <button
               type="button"
-              onClick={() => supabase.auth.resetPasswordForEmail(email)}
+              onClick={handleResetPassword}
               className="text-xs text-vp-red hover:underline"
             >
               ¿Olvidaste tu contraseña?

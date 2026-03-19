@@ -1,13 +1,12 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function PendientePage() {
   const router = useRouter()
-  const supabase = createClient()
 
   async function handleSignOut() {
+    const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
