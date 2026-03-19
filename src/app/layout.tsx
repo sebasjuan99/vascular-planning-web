@@ -1,22 +1,20 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "Vascular Planning",
-  description: "Clinical web platform for vascular surgeons",
-};
+  title: 'Vascular Planning',
+  description: 'Plataforma clínica para planificación de cirugía vascular endovascular',
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={inter.variable}>
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="es">
+      <body className={`${inter.className} bg-white text-vp-dark antialiased`}>
+        {children}
+      </body>
     </html>
-  );
+  )
 }
