@@ -88,7 +88,7 @@ export default function RegistroPage() {
             {[['nombre', 'Nombre'], ['apellido', 'Apellido']].map(([field, label]) => (
               <div key={field}>
                 <label className="text-xs font-semibold text-gray-700 block mb-1">{label}</label>
-                <input required value={(form as any)[field]}
+                <input required value={form[field as keyof typeof form]}
                   onChange={e => update(field, e.target.value)}
                   className="w-full border border-vp-border rounded-md px-3 py-2 text-sm bg-vp-surface focus:outline-none focus:ring-2 focus:ring-vp-red/30"
                 />
@@ -103,7 +103,7 @@ export default function RegistroPage() {
           ].map(([field, label, type]) => (
             <div key={field}>
               <label className="text-xs font-semibold text-gray-700 block mb-1">{label}</label>
-              <input type={type} required value={(form as any)[field]}
+              <input type={type} required value={form[field as keyof typeof form]}
                 onChange={e => update(field, e.target.value)}
                 className="w-full border border-vp-border rounded-md px-3 py-2 text-sm bg-vp-surface focus:outline-none focus:ring-2 focus:ring-vp-red/30"
               />
