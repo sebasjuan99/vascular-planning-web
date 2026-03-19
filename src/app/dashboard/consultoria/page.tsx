@@ -12,8 +12,11 @@ export default function ConsultoriaPage() {
   const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
-    supabase.from('cases').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => setCases(data || []))
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('cases').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+        .then(({ data }) => setCases(data || []))
+    })
   }, [supabase])
 
   async function handleSubmit(e: React.FormEvent) {

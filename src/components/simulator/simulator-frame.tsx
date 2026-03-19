@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { SaveCaseMessage } from '@/lib/types'
@@ -12,7 +12,7 @@ interface SimulatorFrameProps {
 export default function SimulatorFrame({ toolPath, caseType }: SimulatorFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
