@@ -1,0 +1,3605 @@
+'''<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Aorta Abdominal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #f0f2f5;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --bg-color: #ffffff;
+            --danger-color: #e74c3c;
+            --label-inactive-color: #a9a9a9;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            margin: 0;
+            height: 100vh;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        #controles {
+            width: 450px;
+            min-width: 420px;
+            padding: 25px;
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-align: center;
+        }
+        h2 {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        #ramificado-derecho-seccion h3, #ramificado-izquierdo-seccion h3 {
+            color: var(--primary-color);
+        }
+        .controles-columnas {
+            display: flex;
+            gap: 20px;
+        }
+        .columna {
+            flex: 1;
+        }
+        .control-grupo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        label {
+            flex-grow: 1;
+            font-weight: 500;
+            font-size: 0.8rem;
+            padding-right: 10px;
+        }
+        #datos-paciente .control-grupo label {
+            flex-basis: 80px;
+            flex-grow: 0;
+        }
+        #endoprotesis .control-grupo:not(:has(.radio-group)) > label {
+            flex-basis: 130px;
+            flex-grow: 0;
+        }
+
+        #observaciones-seccion .control-grupo {
+            display: block;
+        }
+        .input-slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .input-slider-wrapper input[type="number"] {
+            width: 26px;
+            min-width: 26px;
+            padding: 5px;
+            font-size: 0.72rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .input-slider-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .input-slider-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .input-stepper {
+            display: flex;
+            align-items: center;
+        }
+
+        .stepper-btn {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            font-size: 1rem;
+            line-height: 1;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            background-color: #add8e6;
+            cursor: pointer;
+        }
+
+        .input-stepper input[type="number"] {
+            width: 30px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            -moz-appearance: textfield;
+        }
+        .combined-projection-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .projection-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .projection-group input[type="number"] {
+            width: 30px;
+            min-width: 30px;
+            padding: 5px;
+            font-size: 0.72rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .projection-group input[type="number"]::-webkit-outer-spin-button,
+        .projection-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .proyeccion-label {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: var(--label-inactive-color);
+            transition: color 0.2s;
+        }
+        .proyeccion-label.active {
+            color: var(--text-color);
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: auto;
+            transition: background-color 0.2s;
+        }
+        .export-buttons button:hover {
+            opacity: 0.85;
+        }
+        #area-diagrama {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: auto;
+        }
+        svg {
+            width: 90%;
+            max-width: 900px;
+            aspect-ratio: 297 / 210;
+            border: 1px solid #ccc;
+            background-color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .aorta-path {
+            fill: #c82828;
+        }.limit-reached, .limit-reached label {
+            color: #e74c3c !important;
+            font-weight: bold;
+        }
+        .limit-reached input, .limit-reached select {
+            border-color: #e74c3c !important;
+            color: #e74c3c;
+        }
+        .annotation-line {
+            stroke: #000000;
+            stroke-width: 0.5;
+        }
+        .annotation-text-bg {
+            fill: #ffffff;
+            stroke: #000000;
+            stroke-width: 0.2;
+        }
+        .annotation-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 5px;
+            fill: #000000;
+            text-anchor: middle;
+            alignment-baseline: middle;
+        }
+        .patient-data-input {
+            flex-grow: 1;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        .vignette-label {
+            font-weight: bold;
+        }
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .radio-group label {
+            flex-grow: 0;
+            font-size: 0.75rem;
+        }
+        .input-group-fr {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-grow: 1;
+        }
+        .input-group-fr .patient-data-input {
+            flex-grow: 1;
+        }
+        .fr-label {
+            flex-grow: 0 !important;
+            flex-basis: auto !important;
+            padding-right: 2px !important;
+            font-size: 0.75rem;
+        }
+        .fr-input {
+            width: 30px;
+            padding: 5px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .fr-input::-webkit-outer-spin-button,
+        .fr-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        #area-diagrama.adding-point {
+            cursor: crosshair;
+        }
+        .extra-point-marker {
+            font-size: 8px;
+            font-weight: bold;
+            fill: #000000;
+            text-anchor: middle;
+            alignment-baseline: middle;
+        }
+        .extra-point-vignette-bg {
+            fill: #f8f9fa;
+            stroke: #dee2e6;
+            stroke-width: 0.5;
+        }
+        .extra-point-vignette-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 4px;
+            fill: #000000;
+            text-anchor: start;
+        }
+        .extra-point-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .extra-point-row label {
+            font-weight: bold;
+            flex-basis: 30px;
+        }
+        .extra-point-row input[type="text"] {
+            flex-grow: 1;
+        }
+        .extra-point-row input[type="number"] {
+            width: 50px;
+        }
+        .extra-point-row .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #e74c3c;
+            padding: 0;
+            width: auto;
+        }
+        #add-extra-point-btn.active {
+            background-color: #0056b3;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .extra-point-letter-label {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 4px;
+            fill: #000000;
+            text-anchor: end;
+            alignment-baseline: middle;
+        }
+        .seccion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 20px;
+        }
+        
+        .seccion-header button {
+            width: auto;
+            padding: 2px 8px;
+            font-size: 1.2rem;
+            line-height: 1;
+            margin: 0;
+        }
+
+        
+
+        
+
+        
+
+        
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+            }
+
+            #controles {
+                width: 100%;
+                height: auto;
+                min-width: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: none;
+            }
+
+            #area-diagrama {
+                height: 50vh;
+                min-height: 300px;
+            }
+
+            .controles-columnas {
+                flex-direction: column;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            h2 {
+                font-size: 1rem;
+            }
+
+            label {
+                font-size: 0.9rem;
+            }
+
+            button {
+                padding: 14px;
+                font-size: 1.2rem;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Estilos para el nuevo switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .slider:after { /* Texto NO/SI */
+            content: 'NO';
+            color: white;
+            display: block;
+            position: absolute;
+            transform: translate(-50%,-50%);
+            top: 50%;
+            left: 75%;
+            font-size: 8px;
+            font-weight: bold;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            z-index: 1;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        input:checked + .slider:after {
+            content: 'SI';
+            left: 25%;
+        }
+
+        #ramificado-iliaco-switch-label {
+            transform: scale(0.9);
+        }
+
+                .stent-control-row {
+
+                    display: flex;
+
+                    align-items: center;
+
+                    gap: 8px; /* Adjusted gap */
+
+                    margin-bottom: 10px;
+
+                }
+
+                .stent-preview {
+
+                    border-radius: 50%;
+
+                    background-color: #c82828;
+
+                    border: 1px solid #000;
+
+                    flex-shrink: 0;
+
+                }
+
+                .stent-control-row .input-stepper {
+
+                    max-width: 100px;
+
+                    flex-shrink: 0;
+
+                }
+
+                .transparency-control {
+
+                    display: flex;
+
+                    flex-direction: column;
+
+                    align-items: center;
+
+                    flex-grow: 1;
+
+                    min-width: 80px;
+
+                }
+
+                .transparency-control label {
+
+                    font-size: 0.7rem;
+
+                    margin-bottom: 2px;
+
+                }
+
+                .stent-control-row .draw-stent-btn,
+
+                .stent-control-row .erase-stent-btn,
+
+                .stent-control-row .delete-drawing-btn {
+
+                    width: auto;
+
+                    padding: 5px 8px;
+
+                    font-size: 0.8rem;
+
+                    margin: 0;
+
+                    flex-shrink: 0;
+
+                }
+
+                .stent-control-row .draw-stent-btn,
+
+                .stent-control-row .erase-stent-btn {
+
+                    background-color: #f0f0f0;
+
+                    color: #333;
+
+                    border: 1px solid #ccc;
+
+                }
+
+                .stent-control-row .delete-drawing-btn {
+
+                    background: none;
+
+                    border: none;
+
+                    font-size: 1.2rem;
+
+                    color: #e74c3c;
+
+                }
+
+                .draw-stent-btn.active, .erase-stent-btn.active {
+
+                    background-color: #0056b3;
+
+                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+
+                    color: white;
+
+                    border-color: #0056b3;
+
+                }
+
+        
+
+                        #area-diagrama.drawing-mode {
+
+        
+
+                            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29L15.21 5.02 18.98 8.79 1.02 0c.2-.2.45-.29.7-.29s.51.1.7.29l1.63 1.63c.19.19.29.45.29.7s-.1.51-.29.7L4.79 7.41l3.77 3.77L16.71 4.79c.2-.2.2-.51 0-.71L16.29 3.29c-.19-.19-.45-.29-.7-.29z" fill="black" transform="rotate(-45 12 12)"/></svg>'), auto;
+
+        
+
+                        }
+
+                                #area-diagrama.erasing-mode {
+
+                                    cursor: none;
+
+                                }
+
+                                .no-select {
+
+                                    user-select: none;
+
+                                    -webkit-user-select: none; /* For Safari */
+
+                                    -moz-user-select: none; /* For Firefox */
+
+                                    -ms-user-select: none; /* For IE/Edge */
+
+                                }
+        .stent-size-input::-webkit-outer-spin-button,
+        .stent-size-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .stent-size-input {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        .stent-preview-container {
+            position: relative;
+            cursor: pointer;
+        }
+        .color-palette {
+            display: none;
+            position: absolute;
+            top: 100%;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 5px;
+            z-index: 10;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            border: 1px solid #eee;
+            border-radius: 3px;
+        }
+        .color-swatch:hover {
+            border-color: #999;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div id="controles">
+        <h1>Planificación EVAR</h1>
+
+        <div id="datos-paciente">
+            <h2>Datos del Paciente</h2>
+            <div class="control-grupo">
+                <label>Nombre(s):</label>
+                <input type="text" id="patient_name" class="patient-data-input">
+            </div>
+            <div class="control-grupo">
+                <label>Apellido(s):</label>
+                <input type="text" id="patient_lastname" class="patient-data-input">
+            </div>
+            <div class="control-grupo">
+                <label>ID:</label>
+                <input type="text" id="patient_id" class="patient-data-input">
+            </div>
+            <div class="control-grupo">
+                <label>Fecha:</label>
+                <input type="date" id="procedure_date" class="patient-data-input">
+            </div>
+        </div>
+
+        <div id="controles-superiores">
+            <h2>Parámetros Anatómicos</h2>
+            <div class="control-grupo">
+                <label>1. Renal más baja</label>
+                <select id="renal_baja">
+                    <option value="derecha">Derecha</option>
+                    <option value="izquierda">Izquierda</option>
+                    <option value="iguales">Iguales</option>
+                </select>
+            </div>
+            <div class="control-grupo">
+                <label>2. Diámetro cuello proximal (mm)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="diámetro_cuello_proximal" value="22" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>3. Diámetro cuello medio (mm)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="diámetro_cuello_medio" value="22" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>4. Diámetro cuello distal (mm)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="diámetro_cuello_distal" value="22" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>5. Largo del cuello (mm) (L1)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="largo_cuello" value="20" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>6. Ángulo Beta (β) (°)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="angulo_beta" value="0" min="-100" max="100" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>7. Diámetro del aneurisma (mm)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="diámetro_aneurisma" value="55" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>8. Diámetro de la bifurcación (mm)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="diámetro_bifurcacion" value="28" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>9. Largo renal baja a bifurcación aórtica (mm) (L2)</label>
+                <div class="input-slider-wrapper">
+                    <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="l2" value="90" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controles-columnas">
+            <div id="columna-derecha" class="columna">
+                <h2>Anatomía Derecha</h2>
+                <div class="control-grupo">
+                    <label>10. Diámetro ilíaco proximal (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_iliaca_prox_derecha" value="12" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>11. Diámetro ilíaco medio (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_iliaca_medio_derecha" value="12" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>12. Diámetro ilíaco distal (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_iliaca_dist_derecha" value="12" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>13. Diámetro acceso (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_acceso_derecho" value="8" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>14. Largo a bifurcación ilíaca (mm) (L3)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="l3" value="130" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="columna-izquierda" class="columna">
+                <h2>Anatomía Izquierda</h2>
+                <div class="control-grupo">
+                    <label>15. Diámetro ilíaco proximal (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_iliaca_prox_izquierda" value="12" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>16. Diámetro ilíaco medio (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_iliaca_medio_izquierda" value="12" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>17. Diámetro ilíaco distal (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_iliaca_dist_izquierda" value="12" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>18. Diámetro acceso (mm)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="diámetro_acceso_izquierdo" value="8" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>19. Largo a bifurcación ilíaca (mm) (L4)</label>
+                    <div class="input-slider-wrapper">
+                        <div class="input-stepper">
+                            <button type="button" class="stepper-btn minus">-</button>
+                            <input type="number" id="l4" value="135" step="1">
+                            <button type="button" class="stepper-btn plus">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ramificado-iliaco-seccion">
+            <div class="seccion-header">
+                    <h2>Ramificado Ilíaco</h2>
+                    <button id="ramificado_iliaco_btn">+</button>
+                </div>
+            <div id="ramificado-iliaco-controles" class="controles-columnas" style="display: none;">
+                <div id="ramificado-derecho-seccion" class="columna">
+                    <div class="seccion-header">
+                        <h3>Ramificado Derecho</h3>
+                        <label class="switch" id="ramificado-derecho-switch-label">
+                            <input type="checkbox" id="ramificado_derecho_switch">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div id="ramificado-derecho-controles" style="display: none;">
+                        <div class="control-grupo">
+                            <label>Diámetro Hipogástrica Proximal (mm)</label>
+                            <div class="input-slider-wrapper">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn minus">-</button>
+                                    <input type="number" id="diametro_hipogastrica_prox_derecha" value="8" step="1">
+                                    <button type="button" class="stepper-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-grupo">
+                            <label>Diámetro Hipogástrica Distal (mm)</label>
+                            <div class="input-slider-wrapper">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn minus">-</button>
+                                    <input type="number" id="diametro_hipogastrica_dist_derecha" value="6" step="1">
+                                    <button type="button" class="stepper-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-grupo">
+                            <label>Largo Hipogástrica (mm)</label>
+                            <div class="input-slider-wrapper">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn minus">-</button>
+                                    <input type="number" id="largo_hipogastrica_derecha" value="15" step="1">
+                                    <button type="button" class="stepper-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="ramificado-izquierdo-seccion" class="columna">
+                     <div class="seccion-header">
+                        <h3>Ramificado Izquierdo</h3>
+                        <label class="switch" id="ramificado-izquierdo-switch-label">
+                            <input type="checkbox" id="ramificado_izquierdo_switch">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div id="ramificado-izquierdo-controles" style="display: none;">
+                        <div class="control-grupo">
+                            <label>Diámetro Hipogástrica Proximal (mm)</label>
+                            <div class="input-slider-wrapper">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn minus">-</button>
+                                    <input type="number" id="diametro_hipogastrica_prox_izquierda" value="8" step="1">
+                                    <button type="button" class="stepper-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-grupo">
+                            <label>Diámetro Hipogástrica Distal (mm)</label>
+                            <div class="input-slider-wrapper">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn minus">-</button>
+                                    <input type="number" id="diametro_hipogastrica_dist_izquierda" value="6" step="1">
+                                    <button type="button" class="stepper-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-grupo">
+                            <label>Largo Hipogástrica (mm)</label>
+                            <div class="input-slider-wrapper">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn minus">-</button>
+                                    <input type="number" id="largo_hipogastrica_izquierda" value="15" step="1">
+                                    <button type="button" class="stepper-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="posicion-arco-c">
+            <h2>Posición Arco-C</h2>
+            <div class="control-grupo">
+                <label>Proyección Renal</label>
+                <div class="combined-projection-controls">
+                    <div class="projection-group">
+                        <span class="proyeccion-label" id="proyeccion_label_cau">CAU</span>
+                        <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="proyeccion_renal" value="0" min="-60" max="60" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                        <span class="proyeccion-label" id="proyeccion_label_cra">CRA</span>
+                        
+                    </div>
+                    <div class="projection-group">
+                        <span class="proyeccion-label" id="oblicuidad_label_izq">IZQ</span>
+                        <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="oblicuidad_renal" value="0" min="-60" max="60" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                        <span class="proyeccion-label" id="oblicuidad_label_der">DER</span>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>Hipogástrica Derecha</label>
+                <div class="combined-projection-controls">
+                    <div class="projection-group">
+                        <span class="proyeccion-label" id="proyeccion_label_cau_der">CAU</span>
+                        <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="proyeccion_hipogastrica_derecha" value="0" min="-60" max="60" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                        <span class="proyeccion-label" id="proyeccion_label_cra_der">CRA</span>
+                        
+                    </div>
+                    <div class="projection-group">
+                        <span class="proyeccion-label" id="oblicuidad_label_izq_der">IZQ</span>
+                        <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="oblicuidad_hipogastrica_derecha" value="0" min="-60" max="60" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                        <span class="proyeccion-label" id="oblicuidad_label_der_der">DER</span>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>Hipogástrica Izquierda</label>
+                <div class="combined-projection-controls">
+                    <div class="projection-group">
+                        <span class="proyeccion-label" id="proyeccion_label_cau_izq">CAU</span>
+                        <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="proyeccion_hipogastrica_izquierda" value="0" min="-60" max="60" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                        <span class="proyeccion-label" id="proyeccion_label_cra_izq">CRA</span>
+                        
+                    </div>
+                    <div class="projection-group">
+                        <span class="proyeccion-label" id="oblicuidad_label_izq_izq">IZQ</span>
+                        <div class="input-stepper">
+                        <button type="button" class="stepper-btn minus">-</button>
+                        <input type="number" id="oblicuidad_hipogastrica_izquierda" value="0" min="-60" max="60" step="1">
+                        <button type="button" class="stepper-btn plus">+</button>
+                    </div>
+                        <span class="proyeccion-label" id="oblicuidad_label_der_izq">DER</span>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="extras-seccion">
+            <div class="seccion-header">
+                <h2>Extras</h2>
+                <button id="add-extra-point-btn">+</button>
+            </div>
+            <div id="extras-container">
+                <!-- Los puntos extra se añadirán aquí dinámicamente -->
+            </div>
+        </div>
+
+        <div id="manual-seccion">
+            <div class="seccion-header">
+                <h2>Dibujo</h2>
+                <button id="add-stent-btn">+</button>
+            </div>
+            <div id="stent-controls-container">
+                <!-- Stent controls will be added here -->
+            </div>
+        </div>
+
+        <div id="endoprotesis">
+            <h2>Endoprótesis</h2>
+            <div class="control-grupo">
+                <label>Dispositivo:</label>
+                <select id="device_type" class="patient-data-input">
+                    <option value="" selected></option>
+                    <option value="Anaconda">Anaconda (Terumo)</option>
+                    <option value="E-tegra">E-tegra (Jotec)</option>
+                    <option value="Endurant II">Endurant II (Medtronic)</option>
+                    <option value="Endurant IIs">Endurant IIs (Medtronic)</option>
+                    <option value="Excluder">Excluder (Gore)</option>
+                    <option value="Treo">Treo (Terumo)</option>
+                    <option value="Zenith Alph">Zenith Alph (Cook)</option>
+                    <option value="Zenith Flex">Zenith Flex (Cook)</option>
+                </select>
+            </div>
+            <div class="control-grupo">
+                <label>IFUs:</label>
+                <button id="ifus_button" class="patient-data-input" style="display: none; text-align: center; cursor: pointer; background-color: #007bff; color: white; border: none;">Acceder a Enlace</button>
+            </div>
+            <div class="control-grupo">
+                <label>Cuerpo:</label>
+                <div class="input-group-fr">
+                    <input type="text" id="device_body" class="patient-data-input">
+                    <label for="device_body_fr" class="fr-label">Fr:</label>
+                    <input type="number" id="device_body_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>Rama ipsilateral:</label>
+                <div class="radio-group">
+                    <input type="radio" id="ipsi_d" name="ipsi_side" value="D" checked>
+                    <label for="ipsi_d">(D)</label>
+                    <input type="radio" id="ipsi_i" name="ipsi_side" value="I">
+                    <label for="ipsi_i">(I)</label>
+                </div>
+                <div class="input-group-fr">
+                    <input type="text" id="ipsi_branch" class="patient-data-input">
+                    <label for="ipsi_branch_fr" class="fr-label">Fr:</label>
+                    <input type="number" id="ipsi_branch_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                </div>
+            </div>
+            <div class="control-grupo">
+                <label>Rama contralateral:</label>
+                <div class="input-group-fr">
+                    <input type="text" id="contra_branch" class="patient-data-input">
+                    <label for="contra_branch_fr" class="fr-label">Fr:</label>
+                    <input type="number" id="contra_branch_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                </div>
+            </div>
+            <div id="endoprotesis-ramificado-derecho" style="display: none;">
+                <div class="control-grupo">
+                    <label>Dispositivo Derecho:</label>
+                    <select id="device_type_der" class="patient-data-input">
+                        <option value="" selected></option>
+                        <option value="E-Iliac">E-Iliac (Jotec)</option>
+                        <option value="Excluder Iliaco">Excluder Iliaco (Gore)</option>
+                        <option value="Zenith Iliaco">Zenith Iliaco (Cook)</option>
+                    </select>
+                </div>
+                <div class="control-grupo">
+                    <label>IBD D° IFUs:</label>
+                    <button id="ifus_button_der" class="patient-data-input" style="display: none; text-align: center; cursor: pointer; background-color: #007bff; color: white; border: none;">Acceder a Enlace</button>
+                </div>
+                <div class="control-grupo">
+                    <label>IBD Derecho:</label>
+                    <div class="input-group-fr">
+                        <input type="text" id="ramificado_iliaco_d" class="patient-data-input">
+                        <label for="ramificado_iliaco_d_fr" class="fr-label">Fr:</label>
+                        <input type="number" id="ramificado_iliaco_d_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>Componente Hipogastrico Derecho:</label>
+                    <div class="input-group-fr">
+                        <input type="text" id="componente_hipogastrico_d" class="patient-data-input">
+                        <label for="componente_hipogastrico_d_fr" class="fr-label">Fr:</label>
+                        <input type="number" id="componente_hipogastrico_d_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                    </div>
+                </div>
+            </div>
+            <div id="endoprotesis-ramificado-izquierdo" style="display: none;">
+                 <div class="control-grupo">
+                    <label>Dispositivo Izquierdo:</label>
+                    <select id="device_type_izq" class="patient-data-input">
+                        <option value="" selected></option>
+                        <option value="E-Iliac">E-Iliac (Jotec)</option>
+                        <option value="Excluder Iliaco">Excluder Iliaco (Gore)</option>
+                        <option value="Zenith Iliaco">Zenith Iliaco (Cook)</option>
+                    </select>
+                </div>
+                <div class="control-grupo">
+                    <label>IBD I° IFUs:</label>
+                    <button id="ifus_button_izq" class="patient-data-input" style="display: none; text-align: center; cursor: pointer; background-color: #007bff; color: white; border: none;">Acceder a Enlace</button>
+                </div>
+                <div class="control-grupo">
+                    <label>IBD Izquierdo:</label>
+                    <div class="input-group-fr">
+                        <input type="text" id="ramificado_iliaco_i" class="patient-data-input">
+                        <label for="ramificado_iliaco_i_fr" class="fr-label">Fr:</label>
+                        <input type="number" id="ramificado_iliaco_i_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>Componente Hipogástrico Izquierdo:</label>
+                    <div class="input-group-fr">
+                        <input type="text" id="componente_hipogastrico_i" class="patient-data-input">
+                        <label for="componente_hipogastrico_i_fr" class="fr-label">Fr:</label>
+                        <input type="number" id="componente_hipogastrico_i_fr" class="fr-input" max="99" oninput="this.value=this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="observaciones-seccion">
+            <h2>Observaciones</h2>
+            <div class="control-grupo">
+                <textarea id="device_observations" class="patient-data-input" rows="4" style="width: 100%;"></textarea>
+            </div>
+        </div>
+
+        <div class="export-buttons" style="margin-top: 20px; display: flex; gap: 10px;">
+            <button id="export-pdf" style="background-color: #dc3545;">Exportar como PDF</button>
+            <button id="export-png" style="background-color: #28a745;">Exportar como PNG</button>
+        </div>
+
+        <button id="generar" style="display: none;">Generar Diagrama</button>
+    </div>
+
+    <div id="area-diagrama">
+        <svg id="diagrama_svg" viewBox="0 0 297 210">
+        <defs>
+            <mask id="eraser-mask">
+                <rect x="0" y="0" width="100%" height="100%" fill="white"/>
+                <g id="eraser-paths-group"></g>
+            </mask>
+            <filter id="outline">
+              <feMorphology in="SourceAlpha" operator="dilate" radius="0.5" result="expanded"/>
+              <feFlood flood-color="black"/>
+              <feComposite in2="expanded" operator="in"/>
+              <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <clipPath id="clip-patient-data">
+                <rect x="0" y="0" width="75" height="20"></rect>
+            </clipPath>
+            <clipPath id="clip-renal">
+                <rect x="0" y="0" width="30" height="15"></rect>
+            </clipPath>
+            <clipPath id="clip-endoprotesis">
+                <rect x="0" y="0" width="75" height="44"></rect>
+            </clipPath>
+            <clipPath id="clip-observaciones">
+                <rect x="0" y="0" width="75" height="20"></rect>
+            </clipPath>
+            <clipPath id="clip-extras">
+                <rect x="0" y="0" width="75" height="40"></rect>
+            </clipPath>
+
+        </defs>
+        <g id="patient-data-display-group" transform="translate(5, 5)" clip-path="url(#clip-patient-data)">
+            <rect x="0" y="0" width="75" height="20" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="2" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="start">
+                <tspan class="vignette-label">Nombres(s):</tspan>
+                <tspan id="patient-name-svg"></tspan>
+            </text>
+            <text x="2" y="8" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="start">
+                <tspan class="vignette-label">Apellido(s):</tspan>
+                <tspan id="patient-lastname-svg"></tspan>
+            </text>
+            <text x="2" y="12" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="start">
+                <tspan class="vignette-label">ID:</tspan>
+                <tspan id="patient-id-svg"></tspan>
+            </text>
+            <text x="2" y="16" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="start">
+                <tspan class="vignette-label">Fecha:</tspan>
+                <tspan id="procedure-date-svg"></tspan>
+            </text>
+        </g>
+        <g id="proyeccion-display-group" transform="translate(120, 5)" clip-path="url(#clip-renal)">
+            <rect x="0" y="0" width="30" height="15" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="15" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle" class="vignette-label">Renal más baja</text>
+            <text id="proyeccion-display-svg" x="15" y="8" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">CRA 0°</text>
+            <text id="oblicuidad-display-svg" x="15" y="12" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">DER 0°</text>
+        </g>
+        <g id="endoprotesis-display-group" transform="translate(217, 5)" clip-path="url(#clip-endoprotesis)">
+            <rect x="0" y="0" width="75" height="20" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="37.5" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">
+                <tspan class="vignette-label">Dispositivo:</tspan>
+                <tspan id="device-type-svg"></tspan>
+            </text>
+            <text x="37.5" y="8" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">
+                <tspan class="vignette-label">Cuerpo:</tspan>
+                <tspan id="device-body-svg"></tspan>
+            </text>
+            <text x="37.5" y="12" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">
+                <tspan class="vignette-label">Rama ipsi:</tspan>
+                <tspan id="ipsi-branch-svg"></tspan>
+            </text>
+            <text x="37.5" y="16" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">
+                <tspan class="vignette-label">Rama contra:</tspan>
+                <tspan id="contra-branch-svg"></tspan>
+            </text>
+            <text id="device-type-der-svg" x="37.5" y="20" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle"></text>
+            <text id="ramificado-iliaco-d-svg" x="37.5" y="24" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle"></text>
+            <text id="componente-hipogastrico-d-svg" x="37.5" y="28" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle"></text>
+            <text id="device-type-izq-svg" x="37.5" y="32" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle"></text>
+            <text id="ramificado-iliaco-i-svg" x="37.5" y="36" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle"></text>
+            <text id="componente-hipogastrico-i-svg" x="37.5" y="40" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle"></text>
+        </g>
+        <g id="observaciones-display-group" transform="translate(217, 30)" clip-path="url(#clip-observaciones)">
+            <rect x="0" y="0" width="75" height="20" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="2" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="start">
+                <tspan class="vignette-label">Observaciones:</tspan>
+            </text>
+            <text id="device-observations-svg" x="2" y="8" font-size="3.5" font-family="-apple-system, sans-serif" text-anchor="start">
+            </text>
+        </g>
+        <g id="extras-display-group" transform="translate(217, 55)" clip-path="url(#clip-extras)">
+            <rect x="0" y="0" width="75" height="40" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="2" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="start">
+                <tspan class="vignette-label">Extras:</tspan>
+            </text>
+            <text id="extras-display-svg" x="2" y="8" font-size="3.5" font-family="-apple-system, sans-serif" text-anchor="start">
+            </text>
+        </g>
+        <g id="hipogastrica-derecha-display-group" transform="translate(123.5, 195)">
+            <rect x="0" y="0" width="25" height="15" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="12.5" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle" class="vignette-label">H. Derecha</text>
+            <text id="hipogastrica-derecha-proyeccion-svg" x="12.5" y="8" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">CRA 0°</text>
+            <text id="hipogastrica-derecha-oblicuidad-svg" x="12.5" y="12" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">DER 0°</text>
+        </g>
+        <g id="hipogastrica-izquierda-display-group" transform="translate(168.5, 195)">
+            <rect x="0" y="0" width="25" height="15" fill="#f8f9fa" stroke="#dee2e6" rx="2"></rect>
+            <text x="12.5" y="4" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle" class="vignette-label">H. Izquierda</text>
+            <text id="hipogastrica-izquierda-proyeccion-svg" x="12.5" y="8" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">CRA 0°</text>
+            <text id="hipogastrica-izquierda-oblicuidad-svg" x="12.5" y="12" font-size="3.75" font-family="-apple-system, sans-serif" text-anchor="middle">DER 0°</text>
+        </g>
+" x="240" y="180" height="25" width="55" opacity="0.5"/>
+    </svg>
+    </div>
+
+    <script>
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// Global state for control points
+let controlPoints = {
+    derecho: [{x: 0, y: 0}, {x: 0, y: 0}],
+    izquierdo: [{x: 0, y: 0}, {x: 0, y: 0}]
+};
+
+let selectedControlPoint = null;
+let offset = { x: 0, y: 0 };
+
+function makeDraggable(controlPoint, side, index, svg) {
+    const circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('cx', controlPoint.x);
+    circle.setAttribute('cy', controlPoint.y);
+    circle.setAttribute('r', 2); // Radius of the control point
+    circle.setAttribute('fill', 'blue');
+    circle.setAttribute('stroke', 'white');
+    circle.setAttribute('stroke-width', 0.5);
+    circle.style.cursor = 'move';
+    circle.id = `control-point-${side}-${index}`;
+
+    circle.addEventListener('mousedown', (e) => {
+        selectedControlPoint = { side, index };
+        
+        const svg = document.getElementById('diagrama_svg');
+        const CTM = svg.getScreenCTM().inverse();
+        const pt = new DOMPoint(e.clientX, e.clientY);
+        const svgP = pt.matrixTransform(CTM);
+
+        const mainGroup = document.getElementById('drawing-group');
+        const transform = mainGroup.getAttribute('transform');
+        
+        let scale = 1, translateX = 0, translateY = 0;
+        if (transform) {
+            const scaleMatch = /scale\(([^)]+)\)/.exec(transform);
+            const translateMatch = /translate\(([^)]+)\)/.exec(transform);
+            if (scaleMatch) scale = parseFloat(scaleMatch[1]);
+            if (translateMatch) [translateX, translateY] = translateMatch[1].split(',').map(parseFloat);
+        }
+
+        const mouseX = (svgP.x - translateX) / scale;
+        const mouseY = (svgP.y - translateY) / scale;
+
+        offset.x = mouseX - controlPoints[side][index].x;
+        offset.y = mouseY - controlPoints[side][index].y;
+    });
+
+    return circle;
+}
+
+function createPath(d, className) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', className);
+    return path;
+}
+
+function createAnnotation(group, x1, y1, x2, y2, text, withHandles = false, textOffsetY = -4) {
+    const line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('class', 'annotation-line');
+    group.appendChild(line);
+
+    if (withHandles) {
+        const handleSize = 2.5;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        
+        // Left Handle
+        const l_h1_x = x1 + handleSize * Math.sin(angle);
+        const l_h1_y = y1 - handleSize * Math.cos(angle);
+        const l_h2_x = x1 - handleSize * Math.sin(angle);
+        const l_h2_y = y1 + handleSize * Math.cos(angle);
+        const leftHandle = document.createElementNS(SVG_NS, 'line');
+        leftHandle.setAttribute('x1', l_h1_x);
+        leftHandle.setAttribute('y1', l_h1_y);
+        leftHandle.setAttribute('x2', l_h2_x);
+        leftHandle.setAttribute('y2', l_h2_y);
+        leftHandle.setAttribute('class', 'annotation-line');
+        group.appendChild(leftHandle);
+
+        // Right Handle
+        const r_h1_x = x2 + handleSize * Math.sin(angle);
+        const r_h1_y = y2 - handleSize * Math.cos(angle);
+        const r_h2_x = x2 - handleSize * Math.sin(angle);
+        const r_h2_y = y2 + handleSize * Math.cos(angle);
+        const rightHandle = document.createElementNS(SVG_NS, 'line');
+        rightHandle.setAttribute('x1', r_h1_x);
+        rightHandle.setAttribute('y1', r_h1_y);
+        rightHandle.setAttribute('x2', r_h2_x);
+        rightHandle.setAttribute('y2', r_h2_y);
+        rightHandle.setAttribute('class', 'annotation-line');
+        group.appendChild(rightHandle);
+    }
+
+    const textEl = document.createElementNS(SVG_NS, 'text');
+    textEl.setAttribute('x', (x1 + x2) / 2);
+    textEl.setAttribute('y', (y1 + y2) / 2 + textOffsetY);
+    textEl.setAttribute('class', 'annotation-text');
+    textEl.textContent = text;
+    group.appendChild(textEl);
+
+    const textBBox = textEl.getBBox();
+    const bg = document.createElementNS(SVG_NS, 'rect');
+    bg.setAttribute('x', textBBox.x - 1);
+    bg.setAttribute('y', textBBox.y - 1);
+    bg.setAttribute('width', textBBox.width + 2);
+    bg.setAttribute('height', textBBox.height + 2);
+    bg.setAttribute('class', 'annotation-text-bg');
+    
+    group.insertBefore(bg, textEl);
+}
+
+function rotatePoint(point, center, angleRad) {
+    const cos = Math.cos(angleRad);
+    const sin = Math.sin(angleRad);
+    const nx = (cos * (point.x - center.x)) - (sin * (point.y - center.y)) + center.x;
+    const ny = (sin * (point.x - center.x)) + (cos * (point.y - center.y)) + center.y;
+    return { x: nx, y: ny };
+}
+
+function getCubicBezierPoint(t, p0, p1, p2, p3) {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+    const uuu = uu * u;
+    const ttt = tt * t;
+
+    let p = {x: 0, y: 0};
+    p.x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x;
+    p.y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y;
+
+    return p;
+}
+
+function getCubicBezierTangent(t, p0, p1, p2, p3) {
+    const u = 1 - t;
+    const tt = t * t;
+    const uu = u * u;
+
+    let p = {x: 0, y: 0};
+    p.x = 3 * uu * (p1.x - p0.x) + 6 * u * t * (p2.x - p1.x) + 3 * tt * (p3.x - p2.x);
+    p.y = 3 * uu * (p1.y - p0.y) + 6 * u * t * (p2.y - p1.y) + 3 * tt * (p3.y - p2.y);
+
+    return p;
+}
+
+function dibujarMedidasLongitud(annotationsContainer, y_renal_baja, p_fin_cuello, p_bif_aorta, p_bif_iliaca_der, p_bif_iliaca_izq, largoCuello, l2, l3, l4, mainBBox) {
+    const ANCHO_LINEA_GUIA = 25;
+    const OFFSET_X_MINIMO = -18;
+    const EXTENSION_SUPERIOR = 5;
+    const longitudAnnotationsGroup = document.createElementNS(SVG_NS, 'g');
+    annotationsContainer.appendChild(longitudAnnotationsGroup);
+
+    const offsetX_izq = mainBBox.x - ANCHO_LINEA_GUIA - OFFSET_X_MINIMO;
+    const offsetX_der = mainBBox.x + mainBBox.width + OFFSET_X_MINIMO;
+
+    const x_linea_izq = offsetX_izq;
+    
+    const y_marca_largo_cuello = p_fin_cuello.y;
+    
+    const y_marca_cero = y_marca_largo_cuello - largoCuello;
+
+    const y_inicio_linea = y_marca_cero - EXTENSION_SUPERIOR;
+
+    const p_linea_bif_aorta_izq = { x: x_linea_izq, y: p_bif_aorta.y };
+    
+    const dx_iliaca_der = p_bif_iliaca_der.x - p_bif_aorta.x;
+    const dy_iliaca_der = p_bif_iliaca_der.y - p_bif_aorta.y;
+    const p_linea_bif_iliaca_der = { x: p_linea_bif_aorta_izq.x + dx_iliaca_der, y: p_linea_bif_aorta_izq.y + dy_iliaca_der };
+
+    const lineaVerticalIzq = createPath(`M ${x_linea_izq} ${y_inicio_linea} L ${p_linea_bif_aorta_izq.x} ${p_linea_bif_aorta_izq.y}`, 'annotation-line');
+    const lineaInclinadaIzq = createPath(`M ${p_linea_bif_aorta_izq.x} ${p_linea_bif_aorta_izq.y} L ${p_linea_bif_iliaca_der.x} ${p_linea_bif_iliaca_der.y}`, 'annotation-line');
+    longitudAnnotationsGroup.appendChild(lineaVerticalIzq);
+    longitudAnnotationsGroup.appendChild(lineaInclinadaIzq);
+
+    crearMarcaLongitud(y_inicio_linea, '0', x_linea_izq);
+    crearMarcaLongitud(y_marca_largo_cuello, Math.round(largoCuello), x_linea_izq);
+    crearMarcaLongitud(p_bif_aorta.y, Math.round(l2), p_linea_bif_aorta_izq.x);
+    crearMarcaLongitud(p_bif_iliaca_der.y, Math.round(l3), p_linea_bif_iliaca_der.x);
+
+    const x_linea_der = offsetX_der;
+    const p_linea_bif_aorta_der = { x: x_linea_der, y: p_bif_aorta.y };
+
+    const dx_iliaca_izq = p_bif_iliaca_izq.x - p_bif_aorta.x;
+    const dy_iliaca_izq = p_bif_iliaca_izq.y - p_bif_aorta.y;
+    const p_linea_bif_iliaca_izq = { x: p_linea_bif_aorta_der.x + dx_iliaca_izq, y: p_linea_bif_aorta_der.y + dy_iliaca_izq };
+
+    const lineaInclinadaDer = createPath(`M ${p_linea_bif_aorta_der.x} ${p_linea_bif_aorta_der.y} L ${p_linea_bif_iliaca_izq.x} ${p_linea_bif_iliaca_izq.y}`, 'annotation-line');
+    longitudAnnotationsGroup.appendChild(lineaInclinadaDer);
+
+    crearMarcaLongitud(p_bif_aorta.y, Math.round(l2), p_linea_bif_aorta_der.x);
+    crearMarcaLongitud(p_bif_iliaca_izq.y, Math.round(l4), p_linea_bif_iliaca_izq.x);
+
+    function crearMarcaLongitud(y, texto, x_center) {
+        const x1 = x_center - ANCHO_LINEA_GUIA / 2;
+        const x2 = x_center + ANCHO_LINEA_GUIA / 2;
+        createAnnotation(longitudAnnotationsGroup, x1, y, x2, y, texto);
+    }
+}
+
+function generarDiagrama() {
+    try {
+    const renalBaja = document.getElementById('renal_baja').value;
+    const proyeccionRenal = parseInt(document.getElementById('proyeccion_renal').value, 10) || 0;
+    const oblicuidadRenal = parseInt(document.getElementById('oblicuidad_renal').value, 10) || 0;
+    const d_cuello_prox = parseInt(document.getElementById('diámetro_cuello_proximal').value, 10) || 22;
+    const d_cuello_medio = parseInt(document.getElementById('diámetro_cuello_medio').value, 10) || 22;
+    const d_cuello_dist = parseInt(document.getElementById('diámetro_cuello_distal').value, 10) || 22;
+    const largoCuello = parseInt(document.getElementById('largo_cuello').value, 10) || 20;
+    const anguloBeta = parseInt(document.getElementById('angulo_beta').value, 10) || 0;
+    const d_aneurisma = parseInt(document.getElementById('diámetro_aneurisma').value, 10) || 50;
+    const d_bifurcacion = parseInt(document.getElementById('diámetro_bifurcacion').value, 10) || 28;
+    const l2 = parseInt(document.getElementById('l2').value, 10) || 90;
+    const d_iliaca_prox_der = parseInt(document.getElementById('diámetro_iliaca_prox_derecha').value, 10) || 12;
+    const d_iliaca_medio_der = parseInt(document.getElementById('diámetro_iliaca_medio_derecha').value, 10) || 12;
+    const d_iliaca_dist_der = parseInt(document.getElementById('diámetro_iliaca_dist_derecha').value, 10) || 12;
+    const d_acceso_der = parseInt(document.getElementById('diámetro_acceso_derecho').value, 10) || 8;
+    const l3 = parseInt(document.getElementById('l3').value, 10) || 130;
+    const d_iliaca_prox_izq = parseInt(document.getElementById('diámetro_iliaca_prox_izquierda').value, 10) || 12;
+    const d_iliaca_medio_izq = parseInt(document.getElementById('diámetro_iliaca_medio_izquierda').value, 10) || 12;
+    const d_iliaca_dist_izq = parseInt(document.getElementById('diámetro_iliaca_dist_izquierda').value, 10) || 12;
+    const d_acceso_izq = parseInt(document.getElementById('diámetro_acceso_izquierdo').value, 10) || 8;
+    const l4 = parseInt(document.getElementById('l4').value, 10) || 135;
+
+    const isRamificadoDerecho = document.getElementById('ramificado_derecho_switch').checked;
+    const d_hipo_prox_der = parseInt(document.getElementById('diametro_hipogastrica_prox_derecha').value, 10) || 8;
+    const d_hipo_dist_der = parseInt(document.getElementById('diametro_hipogastrica_dist_derecha').value, 10) || 6;
+    const largo_hipo_der = parseInt(document.getElementById('largo_hipogastrica_derecha').value, 10) || 15;
+
+    const isRamificadoIzquierdo = document.getElementById('ramificado_izquierdo_switch').checked;
+    const d_hipo_prox_izq = parseInt(document.getElementById('diametro_hipogastrica_prox_izquierda').value, 10) || 8;
+    const d_hipo_dist_izq = parseInt(document.getElementById('diametro_hipogastrica_dist_izquierda').value, 10) || 6;
+    const largo_hipo_izq = parseInt(document.getElementById('largo_hipogastrica_izquierda').value, 10) || 15;
+
+    const svg = document.getElementById('diagrama_svg');
+    let mainGroup = svg.querySelector('#drawing-group');
+    if(mainGroup) {
+        mainGroup.innerHTML = '';
+    } else {
+        mainGroup = document.createElementNS(SVG_NS, 'g');
+        mainGroup.id = 'drawing-group';
+        svg.appendChild(mainGroup);
+    }
+
+    let annotationsContainer = document.getElementById('all-annotations-container');
+    if (annotationsContainer) {
+        annotationsContainer.innerHTML = '';
+    } else {
+        annotationsContainer = document.createElementNS(SVG_NS, 'g');
+        annotationsContainer.id = 'all-annotations-container';
+        svg.appendChild(annotationsContainer);
+    }
+
+    const vesselBodyGroup = document.createElementNS(SVG_NS, 'g');
+    vesselBodyGroup.id = 'vessel-body-group';
+    vesselBodyGroup.setAttribute('filter', 'url(#outline)');
+    mainGroup.appendChild(vesselBodyGroup);
+
+    const centroX_inicial = 148.5;
+    const inicioY = 30;
+    const anguloIliacaExterna = 50;
+    const anguloHipogástrica = 25;
+    const anguloAccesoFemoral = 30;
+    const aorta_renal_len = 25;
+    const y_femoral_end = 40;
+    const y_bifurcacion_iliaca_len = 5;
+    const anguloRad = (anguloBeta * Math.PI) / 180;
+
+    const upperAortaGroup = document.createElementNS(SVG_NS, 'g');
+    vesselBodyGroup.appendChild(upperAortaGroup);
+
+    const p_renal_start = { x: centroX_inicial, y: inicioY };
+    const p_renal_end = { x: centroX_inicial, y: inicioY + aorta_renal_len };
+    const p_cuello_mid_local = { x: centroX_inicial, y: p_renal_end.y + largoCuello / 2 };
+    const p_cuello_end_local = { x: centroX_inicial, y: p_renal_end.y + largoCuello };
+
+    const upperAortaPath = `M ${p_renal_start.x - d_cuello_prox/2} ${p_renal_start.y} V ${p_renal_end.y} L ${p_cuello_mid_local.x - d_cuello_medio/2} ${p_cuello_mid_local.y} L ${p_cuello_end_local.x - d_cuello_dist/2} ${p_cuello_end_local.y} H ${p_cuello_end_local.x + d_cuello_dist/2} L ${p_cuello_mid_local.x + d_cuello_medio/2} ${p_cuello_mid_local.y} L ${p_renal_end.x + d_cuello_prox/2} ${p_renal_end.y} V ${p_renal_start.y} Z`;
+    upperAortaGroup.appendChild(createPath(upperAortaPath, 'aorta-path'));
+
+    const renal_ancho = 4.4, renal_largo = 20, y_renal_alta_offset = 10;
+    let y_renal_der, y_renal_izq;
+    if (renalBaja === 'derecha') { y_renal_der = p_renal_start.y + y_renal_alta_offset + 5; y_renal_izq = p_renal_start.y + 5; } 
+    else if (renalBaja === 'izquierda') { y_renal_der = p_renal_start.y + 5; y_renal_izq = p_renal_start.y + y_renal_alta_offset + 5; } 
+    else { y_renal_der = y_renal_izq = p_renal_start.y + y_renal_alta_offset + 5; }
+    
+    const pathRenalDer = `M ${p_renal_start.x - d_cuello_prox/2} ${y_renal_der - renal_ancho/2} h -${renal_largo} v ${renal_ancho} h ${renal_largo} Z`;
+    const pathRenalIzq = `M ${p_renal_start.x + d_cuello_prox/2} ${y_renal_izq - renal_ancho/2} h ${renal_largo} v ${renal_ancho} h -${renal_largo} Z`;
+    upperAortaGroup.appendChild(createPath(pathRenalDer, 'aorta-path'));
+    upperAortaGroup.appendChild(createPath(pathRenalIzq, 'aorta-path'));
+    
+    upperAortaGroup.setAttribute('transform', `rotate(${anguloBeta}, ${p_renal_start.x}, ${p_renal_start.y})`);
+
+    const p_cuello_end_L_rotated = rotatePoint({ x: p_cuello_end_local.x - d_cuello_dist/2, y: p_cuello_end_local.y }, p_renal_start, anguloRad);
+    const p_cuello_end_R_rotated = rotatePoint({ x: p_cuello_end_local.x + d_cuello_dist/2, y: p_cuello_end_local.y }, p_renal_start, anguloRad);
+    const p_cuello_end_center_rotated = rotatePoint(p_cuello_end_local, p_renal_start, anguloRad);
+
+    const p_aneurisma_end_center = { x: p_cuello_end_center_rotated.x, y: p_cuello_end_center_rotated.y + l2 };
+    const p_bif_aorta_L = { x: p_aneurisma_end_center.x - d_bifurcacion / 2, y: p_aneurisma_end_center.y };
+    const p_bif_aorta_R = { x: p_aneurisma_end_center.x + d_bifurcacion / 2, y: p_aneurisma_end_center.y };
+
+    const aneurismaPath = `M ${p_cuello_end_L_rotated.x} ${p_cuello_end_L_rotated.y} C ${p_aneurisma_end_center.x - d_aneurisma / 2} ${p_cuello_end_L_rotated.y + 20}, ${p_aneurisma_end_center.x - d_aneurisma / 2} ${p_aneurisma_end_center.y - 30}, ${p_bif_aorta_L.x} ${p_bif_aorta_L.y} H ${p_bif_aorta_R.x} C ${p_aneurisma_end_center.x + d_aneurisma / 2} ${p_aneurisma_end_center.y - 30}, ${p_aneurisma_end_center.x + d_aneurisma / 2} ${p_cuello_end_R_rotated.y + 20}, ${p_cuello_end_R_rotated.x} ${p_cuello_end_R_rotated.y} Z`;
+    vesselBodyGroup.appendChild(createPath(aneurismaPath, 'aorta-path'));
+
+    const p_crotch = { x: p_aneurisma_end_center.x, y: p_aneurisma_end_center.y + 10 };
+    const separacion_iliaca = 2;
+    
+    const p_iliaca_start_der_R = { x: p_crotch.x - separacion_iliaca, y: p_crotch.y };
+    const p_iliaca_start_der_L = { x: p_iliaca_start_der_R.x - d_iliaca_prox_der, y: p_crotch.y };
+    
+    const p_iliaca_start_izq_L = { x: p_crotch.x + separacion_iliaca, y: p_crotch.y };
+    const p_iliaca_start_izq_R = { x: p_iliaca_start_izq_L.x + d_iliaca_prox_izq, y: p_crotch.y };
+
+    const pathBifurcacion = `M ${p_bif_aorta_L.x},${p_bif_aorta_L.y} L ${p_iliaca_start_der_L.x},${p_iliaca_start_der_L.y} L ${p_iliaca_start_der_R.x},${p_iliaca_start_der_R.y} L ${p_crotch.x},${p_crotch.y} L ${p_iliaca_start_izq_L.x},${p_iliaca_start_izq_L.y} L ${p_iliaca_start_izq_R.x},${p_iliaca_start_izq_R.y} L ${p_bif_aorta_R.x},${p_bif_aorta_R.y} Z`;
+    vesselBodyGroup.appendChild(createPath(pathBifurcacion, 'aorta-path'));
+
+    const anguloIliacaExternaRad = (anguloIliacaExterna * Math.PI) / 180;
+
+    // --- Iliaca Derecha ---
+    const len_iliaca_der = l3 - l2;
+    const p_bif_iliaca_der_center = { x: p_crotch.x - len_iliaca_der * Math.sin(anguloIliacaExternaRad), y: p_crotch.y + len_iliaca_der * Math.cos(anguloIliacaExternaRad) };
+    const r_dist_L = { x: p_bif_iliaca_der_center.x - d_iliaca_dist_der / 2, y: p_bif_iliaca_der_center.y };
+    const r_dist_R = { x: p_bif_iliaca_der_center.x + d_iliaca_dist_der / 2, y: p_bif_iliaca_der_center.y };
+    
+    const p_medio_L_der = { x: (p_iliaca_start_der_L.x + r_dist_L.x) / 2, y: (p_iliaca_start_der_L.y + r_dist_L.y) / 2 };
+    const p_medio_R_der = { x: (p_iliaca_start_der_R.x + r_dist_R.x) / 2, y: (p_iliaca_start_der_R.y + r_dist_R.y) / 2 };
+    const p_medio_center_der = { x: (p_medio_L_der.x + p_medio_R_der.x) / 2, y: (p_medio_L_der.y + p_medio_R_der.y) / 2 };
+    const perp_vec_der = { x: p_medio_R_der.x - p_medio_L_der.x, y: p_medio_R_der.y - p_medio_L_der.y };
+    const mag_der = Math.sqrt(perp_vec_der.x**2 + perp_vec_der.y**2);
+    const norm_perp_vec_der = { x: perp_vec_der.x / mag_der, y: perp_vec_der.y / mag_der };
+    const r_medio_L_new = { x: p_medio_center_der.x - norm_perp_vec_der.x * d_iliaca_medio_der / 2, y: p_medio_center_der.y - norm_perp_vec_der.y * d_iliaca_medio_der / 2 };
+    const r_medio_R_new = { x: p_medio_center_der.x + norm_perp_vec_der.x * d_iliaca_medio_der / 2, y: p_medio_center_der.y + norm_perp_vec_der.y * d_iliaca_medio_der / 2 };
+
+    const pathIliacaComunDer = `M ${p_iliaca_start_der_R.x},${p_iliaca_start_der_R.y} L ${p_iliaca_start_der_L.x},${p_iliaca_start_der_L.y} L ${r_medio_L_new.x},${r_medio_L_new.y} L ${r_dist_L.x},${r_dist_L.y} L ${r_dist_R.x},${r_dist_R.y} L ${r_medio_R_new.x},${r_medio_R_new.y} Z`;
+    vesselBodyGroup.appendChild(createPath(pathIliacaComunDer, 'aorta-path'));
+
+    // --- Iliaca Izquierda ---
+    const len_iliaca_izq = l4 - l2;
+    const p_bif_iliaca_izq_center = { x: p_crotch.x + len_iliaca_izq * Math.sin(anguloIliacaExternaRad), y: p_crotch.y + len_iliaca_izq * Math.cos(anguloIliacaExternaRad) };
+    const l_dist_L = { x: p_bif_iliaca_izq_center.x - d_iliaca_dist_izq / 2, y: p_bif_iliaca_izq_center.y };
+    const l_dist_R = { x: p_bif_iliaca_izq_center.x + d_iliaca_dist_izq / 2, y: p_bif_iliaca_izq_center.y };
+
+    const p_medio_L_izq = { x: (p_iliaca_start_izq_L.x + l_dist_L.x) / 2, y: (p_iliaca_start_izq_L.y + l_dist_L.y) / 2 };
+    const p_medio_R_izq = { x: (p_iliaca_start_izq_R.x + l_dist_R.x) / 2, y: (p_iliaca_start_izq_R.y + l_dist_R.y) / 2 };
+    const p_medio_center_izq = { x: (p_medio_L_izq.x + p_medio_R_izq.x) / 2, y: (p_medio_L_izq.y + p_medio_R_izq.y) / 2 };
+    const perp_vec_izq = { x: p_medio_R_izq.x - p_medio_L_izq.x, y: p_medio_R_izq.y - p_medio_L_izq.y };
+    const mag_izq = Math.sqrt(perp_vec_izq.x**2 + perp_vec_izq.y**2);
+    const norm_perp_vec_izq = { x: perp_vec_izq.x / mag_izq, y: perp_vec_izq.y / mag_izq };
+    const l_medio_L_new = { x: p_medio_center_izq.x - norm_perp_vec_izq.x * d_iliaca_medio_izq / 2, y: p_medio_center_izq.y - norm_perp_vec_izq.y * d_iliaca_medio_izq / 2 };
+    const l_medio_R_new = { x: p_medio_center_izq.x + norm_perp_vec_izq.x * d_iliaca_medio_izq / 2, y: p_medio_center_izq.y + norm_perp_vec_izq.y * d_iliaca_medio_izq / 2 };
+
+    const pathIliacaComunIzq = `M ${p_iliaca_start_izq_R.x},${p_iliaca_start_izq_R.y} L ${p_iliaca_start_izq_L.x},${p_iliaca_start_izq_L.y} L ${l_medio_L_new.x},${l_medio_L_new.y} L ${l_dist_L.x},${l_dist_L.y} L ${l_dist_R.x},${l_dist_R.y} L ${l_medio_R_new.x},${l_medio_R_new.y} Z`;
+    vesselBodyGroup.appendChild(createPath(pathIliacaComunIzq, 'aorta-path'));
+
+    const r_bif_fem_start_y = r_dist_L.y + y_bifurcacion_iliaca_len;
+    const r_bif_fem_start_L = { x: p_bif_iliaca_der_center.x - d_acceso_der / 2, y: r_bif_fem_start_y };
+    const r_bif_fem_start_R = { x: p_bif_iliaca_der_center.x + d_acceso_der / 2, y: r_bif_fem_start_y };
+    const r_bif_path = `M ${r_dist_L.x} ${r_dist_L.y} L ${r_bif_fem_start_L.x} ${r_bif_fem_start_y} H ${r_bif_fem_start_R.x} L ${r_dist_R.x} ${r_dist_R.y} Z`;
+    vesselBodyGroup.appendChild(createPath(r_bif_path, 'aorta-path'));
+
+    const anguloAccesoRad = (anguloAccesoFemoral * Math.PI) / 180;
+    const r_acceso_end_L = { x: r_bif_fem_start_L.x - y_femoral_end * Math.sin(anguloAccesoRad), y: r_bif_fem_start_L.y + y_femoral_end * Math.cos(anguloAccesoRad) };
+    const r_acceso_end_R = { x: r_bif_fem_start_R.x - y_femoral_end * Math.sin(anguloAccesoRad), y: r_bif_fem_start_R.y + y_femoral_end * Math.cos(anguloAccesoRad) };
+    
+    const p_acceso_start_center_der = { x: (r_bif_fem_start_L.x + r_bif_fem_start_R.x) / 2, y: (r_bif_fem_start_L.y + r_bif_fem_start_R.y) / 2 };
+    const p_acceso_end_center_der = { x: (r_acceso_end_L.x + r_acceso_end_R.x) / 2, y: (r_acceso_end_L.y + r_acceso_end_R.y) / 2 };
+
+    if (controlPoints.derecho[0].x === 0 && controlPoints.derecho[0].y === 0) {
+        controlPoints.derecho[0] = {
+            x: p_acceso_start_center_der.x + (p_acceso_end_center_der.x - p_acceso_start_center_der.x) / 3,
+            y: p_acceso_start_center_der.y + (p_acceso_end_center_der.y - p_acceso_start_center_der.y) / 3
+        };
+        controlPoints.derecho[1] = {
+            x: p_acceso_start_center_der.x + 2 * (p_acceso_end_center_der.x - p_acceso_start_center_der.x) / 3,
+            y: p_acceso_start_center_der.y + 2 * (p_acceso_end_center_der.y - p_acceso_start_center_der.y) / 3
+        };
+    }
+    
+    const cp1_der = controlPoints.derecho[0];
+    const cp2_der = controlPoints.derecho[1];
+
+    const p0_der = p_acceso_start_center_der;
+    const p3_der = p_acceso_end_center_der;
+
+    let path_der_L = "M";
+    let path_der_R = "M";
+    const steps = 20;
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const p = getCubicBezierPoint(t, p0_der, cp1_der, cp2_der, p3_der);
+        const tangent = getCubicBezierTangent(t, p0_der, cp1_der, cp2_der, p3_der);
+        const normal = { x: -tangent.y, y: tangent.x };
+        const mag = Math.sqrt(normal.x**2 + normal.y**2);
+        const norm = { x: normal.x / mag, y: normal.y / mag };
+        const offset = d_acceso_der / 2;
+        const p_l = { x: p.x - norm.x * offset, y: p.y - norm.y * offset };
+        const p_r = { x: p.x + norm.x * offset, y: p.y + norm.y * offset };
+        if (i === 0) {
+            path_der_L += `${p_l.x},${p_l.y}`;
+            path_der_R += `${p_r.x},${p_r.y}`;
+        } else {
+            path_der_L += ` L ${p_l.x},${p_l.y}`;
+            path_der_R += ` L ${p_r.x},${p_r.y}`;
+        }
+    }
+
+    const reversed_path_der_R = path_der_R.substring(1).split(' L ').reverse().join(' L ');
+    const accesoDerPath = `${path_der_L} L ${reversed_path_der_R} Z`;
+    vesselBodyGroup.appendChild(createPath(accesoDerPath, 'aorta-path'));
+
+    annotationsContainer.appendChild(makeDraggable(controlPoints.derecho[0], 'derecho', 0, svg));
+    annotationsContainer.appendChild(makeDraggable(controlPoints.derecho[1], 'derecho', 1, svg));
+
+
+    const l_bif_fem_start_y = l_dist_L.y + y_bifurcacion_iliaca_len;
+    const l_bif_fem_start_L = { x: p_bif_iliaca_izq_center.x - d_acceso_izq / 2, y: l_bif_fem_start_y };
+    const l_bif_fem_start_R = { x: p_bif_iliaca_izq_center.x + d_acceso_izq / 2, y: l_bif_fem_start_y };
+    const l_bif_path = `M ${l_dist_L.x} ${l_dist_L.y} L ${l_bif_fem_start_L.x} ${l_bif_fem_start_y} H ${l_bif_fem_start_R.x} L ${l_dist_R.x} ${l_dist_R.y} Z`;
+    vesselBodyGroup.appendChild(createPath(l_bif_path, 'aorta-path'));
+
+    const l_acceso_end_L = { x: l_bif_fem_start_L.x + y_femoral_end * Math.sin(anguloAccesoRad), y: l_bif_fem_start_L.y + y_femoral_end * Math.cos(anguloAccesoRad) };
+    const l_acceso_end_R = { x: l_bif_fem_start_R.x + y_femoral_end * Math.sin(anguloAccesoRad), y: l_bif_fem_start_R.y + y_femoral_end * Math.cos(anguloAccesoRad) };
+    
+    const p_acceso_start_center_izq = { x: (l_bif_fem_start_L.x + l_bif_fem_start_R.x) / 2, y: (l_bif_fem_start_L.y + l_bif_fem_start_R.y) / 2 };
+    const p_acceso_end_center_izq = { x: (l_acceso_end_L.x + l_acceso_end_R.x) / 2, y: (l_acceso_end_L.y + l_acceso_end_R.y) / 2 };
+
+    if (controlPoints.izquierdo[0].x === 0 && controlPoints.izquierdo[0].y === 0) {
+        controlPoints.izquierdo[0] = {
+            x: p_acceso_start_center_izq.x + (p_acceso_end_center_izq.x - p_acceso_start_center_izq.x) / 3,
+            y: p_acceso_start_center_izq.y + (p_acceso_end_center_izq.y - p_acceso_start_center_izq.y) / 3
+        };
+        controlPoints.izquierdo[1] = {
+            x: p_acceso_start_center_izq.x + 2 * (p_acceso_end_center_izq.x - p_acceso_start_center_izq.x) / 3,
+            y: p_acceso_start_center_izq.y + 2 * (p_acceso_end_center_izq.y - p_acceso_start_center_izq.y) / 3
+        };
+    }
+
+    const cp1_izq = controlPoints.izquierdo[0];
+    const cp2_izq = controlPoints.izquierdo[1];
+
+    const p0_izq = p_acceso_start_center_izq;
+    const p3_izq = p_acceso_end_center_izq;
+
+    let path_izq_L = "M";
+    let path_izq_R = "M";
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const p = getCubicBezierPoint(t, p0_izq, cp1_izq, cp2_izq, p3_izq);
+        const tangent = getCubicBezierTangent(t, p0_izq, cp1_izq, cp2_izq, p3_izq);
+        const normal = { x: -tangent.y, y: tangent.x };
+        const mag = Math.sqrt(normal.x**2 + normal.y**2);
+        const norm = { x: normal.x / mag, y: normal.y / mag };
+        const offset = d_acceso_izq / 2;
+        const p_l = { x: p.x - norm.x * offset, y: p.y - norm.y * offset };
+        const p_r = { x: p.x + norm.x * offset, y: p.y + norm.y * offset };
+        if (i === 0) {
+            path_izq_L += `${p_l.x},${p_l.y}`;
+            path_izq_R += `${p_r.x},${p_r.y}`;
+        } else {
+            path_izq_L += ` L ${p_l.x},${p_l.y}`;
+            path_izq_R += ` L ${p_r.x},${p_r.y}`;
+        }
+    }
+
+    const reversed_path_izq_R = path_izq_R.substring(1).split(' L ').reverse().join(' L ');
+    const accesoIzqPath = `${path_izq_L} L ${reversed_path_izq_R} Z`;
+    vesselBodyGroup.appendChild(createPath(accesoIzqPath, 'aorta-path'));
+
+    annotationsContainer.appendChild(makeDraggable(controlPoints.izquierdo[0], 'izquierdo', 0, svg));
+    annotationsContainer.appendChild(makeDraggable(controlPoints.izquierdo[1], 'izquierdo', 1, svg));
+
+
+    const anguloHipogástricaRad = (anguloHipogástrica * Math.PI) / 180;
+    const largoHipogastricaRama = 5; // Ajustado para homogeneidad
+    const anguloBifurcacion = 45 * Math.PI / 180;
+    const y_offset_hipogastrica = 2; // Reducido para acercar
+
+    // --- Arteria Hipogástrica Derecha (Dinámica y Bifurcada) ---
+    const r_hipo_start_y = r_dist_R.y + y_offset_hipogastrica;
+    const r_int_p1 = { x: r_dist_R.x, y: r_hipo_start_y };
+    const r_int_p2 = { x: r_dist_R.x - d_hipo_prox_der, y: r_hipo_start_y };
+    const r_connector_path = `M ${r_dist_R.x - d_hipo_prox_der},${r_dist_R.y} L ${r_dist_R.x},${r_dist_R.y} L ${r_int_p1.x},${r_int_p1.y} L ${r_int_p2.x},${r_int_p2.y} Z`;
+    vesselBodyGroup.appendChild(createPath(r_connector_path, 'aorta-path'));
+    const r_int_p4_tronco = { x: r_int_p1.x + largo_hipo_der * Math.sin(anguloHipogástricaRad), y: r_int_p1.y + largo_hipo_der * Math.cos(anguloHipogástricaRad) };
+    const r_int_p3_tronco = { x: r_int_p2.x + largo_hipo_der * Math.sin(anguloHipogástricaRad), y: r_int_p2.y + largo_hipo_der * Math.cos(anguloHipogástricaRad) };
+    const r_vec_tronco = { x: r_int_p4_tronco.x - r_int_p3_tronco.x, y: r_int_p4_tronco.y - r_int_p3_tronco.y };
+    const r_mag_tronco = Math.sqrt(r_vec_tronco.x**2 + r_vec_tronco.y**2);
+    const r_norm_tronco = { x: r_vec_tronco.x / r_mag_tronco, y: r_vec_tronco.y / r_mag_tronco };
+    const r_center_tronco = { x: (r_int_p3_tronco.x + r_int_p4_tronco.x) / 2, y: (r_int_p3_tronco.y + r_int_p4_tronco.y) / 2};
+    const r_int_p3_final = { x: r_center_tronco.x - r_norm_tronco.x * d_hipo_dist_der / 2, y: r_center_tronco.y - r_norm_tronco.y * d_hipo_dist_der / 2 };
+    const r_int_p4_final = { x: r_center_tronco.x + r_norm_tronco.x * d_hipo_dist_der / 2, y: r_center_tronco.y + r_norm_tronco.y * d_hipo_dist_der / 2 };
+    const troncoDerPath = `M ${r_int_p1.x},${r_int_p1.y} L ${r_int_p2.x},${r_int_p2.y} L ${r_int_p3_final.x},${r_int_p3_final.y} L ${r_int_p4_final.x},${r_int_p4_final.y} Z`;
+    vesselBodyGroup.appendChild(createPath(troncoDerPath, 'aorta-path'));
+    const r_crotch_p = { x: (r_int_p3_final.x + r_int_p4_final.x) / 2, y: (r_int_p3_final.y + r_int_p4_final.y) / 2 };
+    const anguloRama1_der = anguloHipogástricaRad - anguloBifurcacion;
+    const r_rama1_p1 = r_int_p3_final;
+    const r_rama1_p2 = r_crotch_p;
+    const r_rama1_p3 = { x: r_rama1_p2.x + largoHipogastricaRama * Math.sin(anguloRama1_der), y: r_rama1_p2.y + largoHipogastricaRama * Math.cos(anguloRama1_der) };
+    const r_rama1_p4 = { x: r_rama1_p1.x + largoHipogastricaRama * Math.sin(anguloRama1_der), y: r_rama1_p1.y + largoHipogastricaRama * Math.cos(anguloRama1_der) };
+    const rama1DerPath = `M ${r_rama1_p1.x},${r_rama1_p1.y} L ${r_rama1_p2.x},${r_rama1_p2.y} L ${r_rama1_p3.x},${r_rama1_p3.y} L ${r_rama1_p4.x},${r_rama1_p4.y} Z`;
+    vesselBodyGroup.appendChild(createPath(rama1DerPath, 'aorta-path'));
+    const anguloRama2_der = anguloHipogástricaRad + anguloBifurcacion;
+    const r_rama2_p1 = r_crotch_p;
+    const r_rama2_p2 = r_int_p4_final;
+    const r_rama2_p3 = { x: r_rama2_p2.x + largoHipogastricaRama * Math.sin(anguloRama2_der), y: r_rama2_p2.y + largoHipogastricaRama * Math.cos(anguloRama2_der) };
+    const r_rama2_p4 = { x: r_rama2_p1.x + largoHipogastricaRama * Math.sin(anguloRama2_der), y: r_rama2_p1.y + largoHipogastricaRama * Math.cos(anguloRama2_der) };
+    const rama2DerPath = `M ${r_rama2_p1.x},${r_rama2_p1.y} L ${r_rama2_p2.x},${r_rama2_p2.y} L ${r_rama2_p3.x},${r_rama2_p3.y} L ${r_rama2_p4.x},${r_rama2_p4.y} Z`;
+    vesselBodyGroup.appendChild(createPath(rama2DerPath, 'aorta-path'));
+
+    // --- Arteria Hipogástrica Izquierda (Dinámica y Bifurcada) ---
+    const l_hipo_start_y = l_dist_L.y + y_offset_hipogastrica;
+    const l_int_p1 = { x: l_dist_L.x, y: l_hipo_start_y };
+    const l_int_p2 = { x: l_dist_L.x + d_hipo_prox_izq, y: l_hipo_start_y };
+    const l_connector_path = `M ${l_dist_L.x},${l_dist_L.y} L ${l_dist_L.x + d_hipo_prox_izq},${l_dist_L.y} L ${l_int_p2.x},${l_int_p2.y} L ${l_int_p1.x},${l_int_p1.y} Z`;
+    vesselBodyGroup.appendChild(createPath(l_connector_path, 'aorta-path'));
+    const l_int_p4_tronco = { x: l_int_p1.x - largo_hipo_izq * Math.sin(anguloHipogástricaRad), y: l_int_p1.y + largo_hipo_izq * Math.cos(anguloHipogástricaRad) };
+    const l_int_p3_tronco = { x: l_int_p2.x - largo_hipo_izq * Math.sin(anguloHipogástricaRad), y: l_int_p2.y + largo_hipo_izq * Math.cos(anguloHipogástricaRad) };
+    const l_vec_tronco = { x: l_int_p4_tronco.x - l_int_p3_tronco.x, y: l_int_p4_tronco.y - l_int_p3_tronco.y };
+    const l_mag_tronco = Math.sqrt(l_vec_tronco.x**2 + l_vec_tronco.y**2);
+    const l_norm_tronco = { x: l_vec_tronco.x / l_mag_tronco, y: l_vec_tronco.y / l_mag_tronco };
+    const l_center_tronco = { x: (l_int_p3_tronco.x + l_int_p4_tronco.x) / 2, y: (l_int_p3_tronco.y + l_int_p4_tronco.y) / 2};
+    const l_int_p3_final = { x: l_center_tronco.x - l_norm_tronco.x * d_hipo_dist_izq / 2, y: l_center_tronco.y - l_norm_tronco.y * d_hipo_dist_izq / 2 };
+    const l_int_p4_final = { x: l_center_tronco.x + l_norm_tronco.x * d_hipo_dist_izq / 2, y: l_center_tronco.y + l_norm_tronco.y * d_hipo_dist_izq / 2 };
+    const troncoIzqPath = `M ${l_int_p1.x},${l_int_p1.y} L ${l_int_p2.x},${l_int_p2.y} L ${l_int_p3_final.x},${l_int_p3_final.y} L ${l_int_p4_final.x},${l_int_p4_final.y} Z`;
+    vesselBodyGroup.appendChild(createPath(troncoIzqPath, 'aorta-path'));
+    const l_crotch_p = { x: (l_int_p3_final.x + l_int_p4_final.x) / 2, y: (l_int_p3_final.y + l_int_p4_final.y) / 2 };
+    const anguloRama1_izq = anguloHipogástricaRad + anguloBifurcacion;
+    const l_rama1_p1 = l_int_p4_final;
+    const l_rama1_p2 = l_crotch_p;
+    const l_rama1_p3 = { x: l_rama1_p2.x - largoHipogastricaRama * Math.sin(anguloRama1_izq), y: l_rama1_p2.y + largoHipogastricaRama * Math.cos(anguloRama1_izq) };
+    const l_rama1_p4 = { x: l_rama1_p1.x - largoHipogastricaRama * Math.sin(anguloRama1_izq), y: l_rama1_p1.y + largoHipogastricaRama * Math.cos(anguloRama1_izq) };
+    const rama1IzqPath = `M ${l_rama1_p1.x},${l_rama1_p1.y} L ${l_rama1_p2.x},${l_rama1_p2.y} L ${l_rama1_p3.x},${l_rama1_p3.y} L ${l_rama1_p4.x},${l_rama1_p4.y} Z`;
+    vesselBodyGroup.appendChild(createPath(rama1IzqPath, 'aorta-path'));
+    const anguloRama2_izq = anguloHipogástricaRad - anguloBifurcacion;
+    const l_rama2_p1 = l_crotch_p;
+    const l_rama2_p2 = l_int_p3_final;
+    const l_rama2_p3 = { x: l_rama2_p2.x - largoHipogastricaRama * Math.sin(anguloRama2_izq), y: l_rama2_p2.y + largoHipogastricaRama * Math.cos(anguloRama2_izq) };
+    const l_rama2_p4 = { x: l_rama2_p1.x - largoHipogastricaRama * Math.sin(anguloRama2_izq), y: l_rama2_p1.y + largoHipogastricaRama * Math.cos(anguloRama2_izq) };
+    const rama2IzqPath = `M ${l_rama2_p1.x},${l_rama2_p1.y} L ${l_rama2_p2.x},${l_rama2_p2.y} L ${l_rama2_p3.x},${l_rama2_p3.y} L ${l_rama2_p4.x},${l_rama2_p4.y} Z`;
+    vesselBodyGroup.appendChild(createPath(rama2IzqPath, 'aorta-path'));
+
+    const allAnnotationsGroup = document.createElementNS(SVG_NS, 'g');
+    allAnnotationsGroup.id = 'all-annotations-group';
+    annotationsContainer.appendChild(allAnnotationsGroup);
+
+    // Anotaciones Hipogástricas Condicionales
+    if (isRamificadoDerecho) {
+        function findIntersection(lineP1, lineV, segP1, segP2) {
+            const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+            const det = -lineV.x * segV.y + segV.x * lineV.y;
+            if (Math.abs(det) < 1e-6) return null;
+            const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+            return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+        }
+
+        const h_start_center_der = { x: (r_int_p1.x + r_int_p2.x) / 2, y: r_int_p1.y };
+        const h_end_center_der = r_crotch_p;
+        const h_axis_der = { x: h_end_center_der.x - h_start_center_der.x, y: h_end_center_der.y - h_start_center_der.y };
+        const h_perp_der = { x: -h_axis_der.y, y: h_axis_der.x };
+        const h_mag_perp_der = Math.sqrt(h_perp_der.x**2 + h_perp_der.y**2);
+        const h_norm_perp_der = { x: h_perp_der.x / h_mag_perp_der, y: h_perp_der.y / h_mag_perp_der };
+
+        const t_prox_hipo = 0.15;
+        const ann_center_hipo_der = {
+            x: (1 - t_prox_hipo) * h_start_center_der.x + t_prox_hipo * h_end_center_der.x,
+            y: (1 - t_prox_hipo) * h_start_center_der.y + t_prox_hipo * h_end_center_der.y
+        };
+
+        const wall_L_hipo_der_p1 = r_int_p2;
+        const wall_L_hipo_der_p2 = r_int_p3_final;
+        const wall_R_hipo_der_p1 = r_int_p1;
+        const wall_R_hipo_der_p2 = r_int_p4_final;
+
+        const isect_L_hipo_der = findIntersection(ann_center_hipo_der, h_norm_perp_der, wall_L_hipo_der_p1, wall_L_hipo_der_p2);
+        const isect_R_hipo_der = findIntersection(ann_center_hipo_der, h_norm_perp_der, wall_R_hipo_der_p1, wall_R_hipo_der_p2);
+
+        if (isect_L_hipo_der && isect_R_hipo_der) {
+            createAnnotation(allAnnotationsGroup, isect_L_hipo_der.x, isect_L_hipo_der.y, isect_R_hipo_der.x, isect_R_hipo_der.y, d_hipo_prox_der, false, 4);
+        } else {
+            createAnnotation(allAnnotationsGroup, r_int_p1.x, r_int_p1.y, r_int_p2.x, r_int_p2.y, d_hipo_prox_der, false, 4);
+        }
+        createAnnotation(allAnnotationsGroup, r_int_p4_final.x, r_int_p4_final.y, r_int_p3_final.x, r_int_p3_final.y, d_hipo_dist_der);
+        const r_largo_p1 = { x: (r_int_p1.x + r_int_p2.x) / 2, y: (r_int_p1.y + r_int_p2.y) / 2 };
+        const r_largo_p2 = { x: (r_int_p4_final.x + r_int_p3_final.x) / 2, y: (r_int_p4_final.y + r_int_p3_final.y) / 2 };
+        const vec_der = { x: r_largo_p2.x - r_largo_p1.x, y: r_largo_p2.y - r_largo_p1.y };
+        const perp_vec_der = { x: vec_der.y, y: -vec_der.x };
+        const mag_der = Math.sqrt(perp_vec_der.x**2 + perp_vec_der.y**2);
+        const norm_perp_vec_der = { x: perp_vec_der.x / mag_der, y: perp_vec_der.y / mag_der };
+        const offset_der = 12;
+        const ann_p1_der = { x: r_largo_p1.x + offset_der * norm_perp_vec_der.x, y: r_largo_p1.y + offset_der * norm_perp_vec_der.y };
+        const ann_p2_der = { x: r_largo_p2.x + offset_der * norm_perp_vec_der.x, y: r_largo_p2.y + offset_der * norm_perp_vec_der.y };
+        createAnnotation(allAnnotationsGroup, ann_p1_der.x, ann_p1_der.y, ann_p2_der.x, ann_p2_der.y, largo_hipo_der, true);
+    }
+
+    if (isRamificadoIzquierdo) {
+        function findIntersection(lineP1, lineV, segP1, segP2) {
+            const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+            const det = -lineV.x * segV.y + segV.x * lineV.y;
+            if (Math.abs(det) < 1e-6) return null;
+            const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+            return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+        }
+
+        const h_start_center_izq = { x: (l_int_p1.x + l_int_p2.x) / 2, y: l_int_p1.y };
+        const h_end_center_izq = l_crotch_p;
+        const h_axis_izq = { x: h_end_center_izq.x - h_start_center_izq.x, y: h_end_center_izq.y - h_start_center_izq.y };
+        const h_perp_izq = { x: -h_axis_izq.y, y: h_axis_izq.x };
+        const h_mag_perp_izq = Math.sqrt(h_perp_izq.x**2 + h_perp_izq.y**2);
+        const h_norm_perp_izq = { x: h_perp_izq.x / h_mag_perp_izq, y: h_perp_izq.y / h_mag_perp_izq };
+
+        const t_prox_hipo_izq = 0.15;
+        const ann_center_hipo_izq = {
+            x: (1 - t_prox_hipo_izq) * h_start_center_izq.x + t_prox_hipo_izq * h_end_center_izq.x,
+            y: (1 - t_prox_hipo_izq) * h_start_center_izq.y + t_prox_hipo_izq * h_end_center_izq.y
+        };
+
+        const wall_L_hipo_izq_p1 = l_int_p2;
+        const wall_L_hipo_izq_p2 = l_int_p3_final;
+        const wall_R_hipo_izq_p1 = l_int_p1;
+        const wall_R_hipo_izq_p2 = l_int_p4_final;
+
+        const isect_L_hipo_izq = findIntersection(ann_center_hipo_izq, h_norm_perp_izq, wall_L_hipo_izq_p1, wall_L_hipo_izq_p2);
+        const isect_R_hipo_izq = findIntersection(ann_center_hipo_izq, h_norm_perp_izq, wall_R_hipo_izq_p1, wall_R_hipo_izq_p2);
+
+        if (isect_L_hipo_izq && isect_R_hipo_izq) {
+            createAnnotation(allAnnotationsGroup, isect_L_hipo_izq.x, isect_L_hipo_izq.y, isect_R_hipo_izq.x, isect_R_hipo_izq.y, d_hipo_prox_izq, false, 4);
+        } else {
+            createAnnotation(allAnnotationsGroup, l_int_p1.x, l_int_p1.y, l_int_p2.x, l_int_p2.y, d_hipo_prox_izq, false, 4);
+        }
+        createAnnotation(allAnnotationsGroup, l_int_p4_final.x, l_int_p4_final.y, l_int_p3_final.x, l_int_p3_final.y, d_hipo_dist_izq);
+        const l_largo_p1 = { x: (l_int_p1.x + l_int_p2.x) / 2, y: (l_int_p1.y + l_int_p2.y) / 2 };
+        const l_largo_p2 = { x: (l_int_p4_final.x + l_int_p3_final.x) / 2, y: (l_int_p4_final.y + l_int_p3_final.y) / 2 };
+        const vec_izq = { x: l_largo_p2.x - l_largo_p1.x, y: l_largo_p2.y - l_largo_p1.y };
+        const perp_vec_izq = { x: -vec_izq.y, y: vec_izq.x };
+        const mag_izq = Math.sqrt(perp_vec_izq.x**2 + perp_vec_izq.y**2);
+        const norm_perp_vec_izq = { x: perp_vec_izq.x / mag_izq, y: perp_vec_izq.y / mag_izq };
+        const offset_izq = 12;
+        const ann_p1_izq = { x: l_largo_p1.x + offset_izq * norm_perp_vec_izq.x, y: l_largo_p1.y + offset_izq * norm_perp_vec_izq.y };
+        const ann_p2_izq = { x: l_largo_p2.x + offset_izq * norm_perp_vec_izq.x, y: l_largo_p2.y + offset_izq * norm_perp_vec_izq.y };
+        createAnnotation(allAnnotationsGroup, ann_p1_izq.x, ann_p1_izq.y, ann_p2_izq.x, ann_p2_izq.y, largo_hipo_izq, true);
+    }
+
+    const p2_start = rotatePoint({x: p_renal_start.x - d_cuello_prox / 2, y: p_renal_end.y - 5}, p_renal_start, anguloRad);
+    const p2_end = rotatePoint({x: p_renal_start.x + d_cuello_prox / 2, y: p_renal_end.y - 5}, p_renal_start, anguloRad);
+    createAnnotation(allAnnotationsGroup, p2_start.x, p2_start.y, p2_end.x, p2_end.y, d_cuello_prox);
+
+    const y_cuello_medio_annotation = ((p_renal_end.y - 5) + p_cuello_end_local.y) / 2;
+    const p3_start = rotatePoint({x: p_cuello_mid_local.x - d_cuello_medio / 2, y: y_cuello_medio_annotation}, p_renal_start, anguloRad);
+    const p3_end = rotatePoint({x: p_cuello_mid_local.x + d_cuello_medio / 2, y: y_cuello_medio_annotation}, p_renal_start, anguloRad);
+    createAnnotation(allAnnotationsGroup, p3_start.x, p3_start.y, p3_end.x, p3_end.y, d_cuello_medio);
+
+    const diámetro_promedio = ((d_cuello_prox + d_cuello_medio + d_cuello_dist) / 3).toFixed(1);
+    const p3_promedio_start = { x: p3_start.x - 30, y: p3_start.y };
+    const p3_promedio_end = { x: p3_start.x - 25, y: p3_start.y };
+    createAnnotation(allAnnotationsGroup, p3_promedio_start.x, p3_promedio_start.y, p3_promedio_end.x, p3_promedio_end.y, `Ø ${diámetro_promedio}`);
+
+    const p4_start = rotatePoint({x: p_cuello_end_local.x - d_cuello_dist / 2, y: p_cuello_end_local.y}, p_renal_start, anguloRad);
+    const p4_end = rotatePoint({x: p_cuello_end_local.x + d_cuello_dist / 2, y: p_cuello_end_local.y}, p_renal_start, anguloRad);
+    createAnnotation(allAnnotationsGroup, p4_start.x, p4_start.y, p4_end.x, p4_end.y, d_cuello_dist);
+
+    const offset = 20;
+    const length = 5; 
+    const vertical_offset = 8;
+    const start_x = p4_end.x + offset;
+    const end_x = start_x + length;
+    const y_pos = p4_end.y + vertical_offset;
+    createAnnotation(allAnnotationsGroup, start_x, y_pos, end_x, y_pos, `β ${Math.round(anguloBeta)}°`);
+
+    const aneurisma_mid_y = p_cuello_end_center_rotated.y + l2 / 2;
+    createAnnotation(allAnnotationsGroup, p_aneurisma_end_center.x - d_aneurisma / 2.1, aneurisma_mid_y, p_aneurisma_end_center.x + d_aneurisma / 2.1, aneurisma_mid_y, d_aneurisma);
+    createAnnotation(allAnnotationsGroup, p_bif_aorta_L.x, p_bif_aorta_L.y, p_bif_aorta_R.x, p_bif_aorta_R.y, d_bifurcacion);
+
+    const p_start_center_der = { x: (p_iliaca_start_der_L.x + p_iliaca_start_der_R.x) / 2, y: p_iliaca_start_der_L.y };
+    const axis_vec_der = { x: p_medio_center_der.x - p_start_center_der.x, y: p_medio_center_der.y - p_start_center_der.y };
+    const perp_vec_der_prox = { x: -axis_vec_der.y, y: axis_vec_der.x };
+    const mag_perp_der = Math.sqrt(perp_vec_der_prox.x**2 + perp_vec_der_prox.y**2);
+    const norm_perp_vec_der_prox = { x: perp_vec_der_prox.x / mag_perp_der, y: perp_vec_der_prox.y / mag_perp_der };
+
+    const t_prox = 0.15; // Fractional distance along the axis
+    const ann_center_der = { 
+        x: (1 - t_prox) * p_start_center_der.x + t_prox * p_medio_center_der.x, 
+        y: (1 - t_prox) * p_start_center_der.y + t_prox * p_medio_center_der.y 
+    };
+
+    function findIntersection(lineP1, lineV, segP1, segP2) {
+        const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+        const det = -lineV.x * segV.y + segV.x * lineV.y;
+        if (Math.abs(det) < 1e-6) return null;
+        const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+        return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+    }
+
+    const wall_L_der_p1 = p_iliaca_start_der_L;
+    const wall_L_der_p2 = r_medio_L_new;
+    const wall_R_der_p1 = p_iliaca_start_der_R;
+    const wall_R_der_p2 = r_medio_R_new;
+
+    const isect_L_der = findIntersection(ann_center_der, norm_perp_vec_der_prox, wall_L_der_p1, wall_L_der_p2);
+    const isect_R_der = findIntersection(ann_center_der, norm_perp_vec_der_prox, wall_R_der_p1, wall_R_der_p2);
+
+    if (isect_L_der && isect_R_der) {
+        createAnnotation(allAnnotationsGroup, isect_L_der.x, isect_L_der.y, isect_R_der.x, isect_R_der.y, d_iliaca_prox_der);
+    }
+    function findIntersection(lineP1, lineV, segP1, segP2) {
+        const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+        const det = -lineV.x * segV.y + segV.x * lineV.y;
+        if (Math.abs(det) < 1e-6) return null;
+        const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+        return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+    }
+
+    const axis_2_der = { x: p_bif_iliaca_der_center.x - p_medio_center_der.x, y: p_bif_iliaca_der_center.y - p_medio_center_der.y };
+    const perp_2_der = { x: -axis_2_der.y, y: axis_2_der.x };
+    const mag_perp_2_der = Math.sqrt(perp_2_der.x**2 + perp_2_der.y**2);
+    const norm_perp_2_der = { x: perp_2_der.x / mag_perp_2_der, y: perp_2_der.y / mag_perp_2_der };
+
+    const ann_center_medio_der = p_medio_center_der;
+
+    const wall_L_medio_der_p1 = r_medio_L_new;
+    const wall_L_medio_der_p2 = r_dist_L;
+    const wall_R_medio_der_p1 = r_medio_R_new;
+    const wall_R_medio_der_p2 = r_dist_R;
+
+    const isect_L_medio_der = findIntersection(ann_center_medio_der, norm_perp_2_der, wall_L_medio_der_p1, wall_L_medio_der_p2);
+    const isect_R_medio_der = findIntersection(ann_center_medio_der, norm_perp_2_der, wall_R_medio_der_p1, wall_R_medio_der_p2);
+
+    if (isect_L_medio_der && isect_R_medio_der) {
+        createAnnotation(allAnnotationsGroup, isect_L_medio_der.x, isect_L_medio_der.y, isect_R_medio_der.x, isect_R_medio_der.y, d_iliaca_medio_der);
+    } else {
+        createAnnotation(allAnnotationsGroup, r_medio_L_new.x, r_medio_L_new.y, r_medio_R_new.x, r_medio_R_new.y, d_iliaca_medio_der);
+    }
+
+    const p_start_center_izq = { x: (p_iliaca_start_izq_L.x + p_iliaca_start_izq_R.x) / 2, y: p_iliaca_start_izq_L.y };
+    const axis_vec_izq = { x: p_medio_center_izq.x - p_start_center_izq.x, y: p_medio_center_izq.y - p_start_center_izq.y };
+    const perp_vec_izq_prox = { x: -axis_vec_izq.y, y: axis_vec_izq.x };
+    const mag_perp_izq = Math.sqrt(perp_vec_izq_prox.x**2 + perp_vec_izq_prox.y**2);
+    const norm_perp_vec_izq_prox = { x: perp_vec_izq_prox.x / mag_perp_izq, y: perp_vec_izq_prox.y / mag_perp_izq };
+
+    const t_prox_izq = 0.15; // Fractional distance along the axis
+    const ann_center_izq = { 
+        x: (1 - t_prox_izq) * p_start_center_izq.x + t_prox_izq * p_medio_center_izq.x, 
+        y: (1 - t_prox_izq) * p_start_center_izq.y + t_prox_izq * p_medio_center_izq.y 
+    };
+
+    const wall_L_izq_p1 = p_iliaca_start_izq_L;
+    const wall_L_izq_p2 = l_medio_L_new;
+    const wall_R_izq_p1 = p_iliaca_start_izq_R;
+    const wall_R_izq_p2 = l_medio_R_new;
+
+    const isect_L_izq = findIntersection(ann_center_izq, norm_perp_vec_izq_prox, wall_L_izq_p1, wall_L_izq_p2);
+    const isect_R_izq = findIntersection(ann_center_izq, norm_perp_vec_izq_prox, wall_R_izq_p1, wall_R_izq_p2);
+
+    if (isect_L_izq && isect_R_izq) {
+        createAnnotation(allAnnotationsGroup, isect_L_izq.x, isect_L_izq.y, isect_R_izq.x, isect_R_izq.y, d_iliaca_prox_izq);
+    }
+    function findIntersection(lineP1, lineV, segP1, segP2) {
+        const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+        const det = -lineV.x * segV.y + segV.x * lineV.y;
+        if (Math.abs(det) < 1e-6) return null;
+        const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+        return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+    }
+
+    const axis_2_izq = { x: p_bif_iliaca_izq_center.x - p_medio_center_izq.x, y: p_bif_iliaca_izq_center.y - p_medio_center_izq.y };
+    const perp_2_izq = { x: -axis_2_izq.y, y: axis_2_izq.x };
+    const mag_perp_2_izq = Math.sqrt(perp_2_izq.x**2 + perp_2_izq.y**2);
+    const norm_perp_2_izq = { x: perp_2_izq.x / mag_perp_2_izq, y: perp_2_izq.y / mag_perp_2_izq };
+
+    const ann_center_medio_izq = p_medio_center_izq;
+
+    const wall_L_medio_izq_p1 = l_medio_L_new;
+    const wall_L_medio_izq_p2 = l_dist_L;
+    const wall_R_medio_izq_p1 = l_medio_R_new;
+    const wall_R_medio_izq_p2 = l_dist_R;
+
+    const isect_L_medio_izq = findIntersection(ann_center_medio_izq, norm_perp_2_izq, wall_L_medio_izq_p1, wall_L_medio_izq_p2);
+    const isect_R_medio_izq = findIntersection(ann_center_medio_izq, norm_perp_2_izq, wall_R_medio_izq_p1, wall_R_medio_izq_p2);
+
+    if (isect_L_medio_izq && isect_R_medio_izq) {
+        createAnnotation(allAnnotationsGroup, isect_L_medio_izq.x, isect_L_medio_izq.y, isect_R_medio_izq.x, isect_R_medio_izq.y, d_iliaca_medio_izq);
+    } else {
+        createAnnotation(allAnnotationsGroup, l_medio_L_new.x, l_medio_L_new.y, l_medio_R_new.x, l_medio_R_new.y, d_iliaca_medio_izq);
+    }
+
+    function findIntersection(lineP1, lineV, segP1, segP2) {
+        const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+        const det = -lineV.x * segV.y + segV.x * lineV.y;
+        if (Math.abs(det) < 1e-6) return null;
+        const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+        return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+    }
+
+    const axis_2_der_dist = { x: p_bif_iliaca_der_center.x - p_medio_center_der.x, y: p_bif_iliaca_der_center.y - p_medio_center_der.y };
+    const perp_2_der_dist = { x: -axis_2_der_dist.y, y: axis_2_der_dist.x };
+    const mag_perp_2_der_dist = Math.sqrt(perp_2_der_dist.x**2 + perp_2_der_dist.y**2);
+    const norm_perp_2_der_dist = { x: perp_2_der_dist.x / mag_perp_2_der_dist, y: perp_2_der_dist.y / mag_perp_2_der_dist };
+
+    const t_dist = 0.9;
+    const ann_center_dist_der = {
+        x: (1 - t_dist) * p_medio_center_der.x + t_dist * p_bif_iliaca_der_center.x,
+        y: (1 - t_dist) * p_medio_center_der.y + t_dist * p_bif_iliaca_der_center.y
+    };
+
+    const wall_L_dist_der_p1 = r_medio_L_new;
+    const wall_L_dist_der_p2 = r_dist_L;
+    const wall_R_dist_der_p1 = r_medio_R_new;
+    const wall_R_dist_der_p2 = r_dist_R;
+
+    const isect_L_dist_der = findIntersection(ann_center_dist_der, norm_perp_2_der_dist, wall_L_dist_der_p1, wall_L_dist_der_p2);
+    const isect_R_dist_der = findIntersection(ann_center_dist_der, norm_perp_2_der_dist, wall_R_dist_der_p1, wall_R_dist_der_p2);
+
+    if (isect_L_dist_der && isect_R_dist_der) {
+        createAnnotation(allAnnotationsGroup, isect_L_dist_der.x, isect_L_dist_der.y, isect_R_dist_der.x, isect_R_dist_der.y, d_iliaca_dist_der, false, -8);
+    } else {
+        createAnnotation(allAnnotationsGroup, r_dist_L.x, r_dist_L.y, r_dist_R.x, r_dist_R.y, d_iliaca_dist_der, false, -8);
+    }
+    function findIntersection(lineP1, lineV, segP1, segP2) {
+        const segV = { x: segP2.x - segP1.x, y: segP2.y - segP1.y };
+        const det = -lineV.x * segV.y + segV.x * lineV.y;
+        if (Math.abs(det) < 1e-6) return null;
+        const t = ( (segP1.x - lineP1.x) * (-segV.y) - (segP1.y - lineP1.y) * (-segV.x) ) / det;
+        return { x: lineP1.x + t * lineV.x, y: lineP1.y + t * lineV.y };
+    }
+
+    const axis_2_izq_dist = { x: p_bif_iliaca_izq_center.x - p_medio_center_izq.x, y: p_bif_iliaca_izq_center.y - p_medio_center_izq.y };
+    const perp_2_izq_dist = { x: -axis_2_izq_dist.y, y: axis_2_izq_dist.x };
+    const mag_perp_2_izq_dist = Math.sqrt(perp_2_izq_dist.x**2 + perp_2_izq_dist.y**2);
+    const norm_perp_2_izq_dist = { x: perp_2_izq_dist.x / mag_perp_2_izq_dist, y: perp_2_izq_dist.y / mag_perp_2_izq_dist };
+
+    const t_dist_izq = 0.9;
+    const ann_center_dist_izq = {
+        x: (1 - t_dist_izq) * p_medio_center_izq.x + t_dist_izq * p_bif_iliaca_izq_center.x,
+        y: (1 - t_dist_izq) * p_medio_center_izq.y + t_dist_izq * p_bif_iliaca_izq_center.y
+    };
+
+    const wall_L_dist_izq_p1 = l_medio_L_new;
+    const wall_L_dist_izq_p2 = l_dist_L;
+    const wall_R_dist_izq_p1 = l_medio_R_new;
+    const wall_R_dist_izq_p2 = l_dist_R;
+
+    const isect_L_dist_izq = findIntersection(ann_center_dist_izq, norm_perp_2_izq_dist, wall_L_dist_izq_p1, wall_L_dist_izq_p2);
+    const isect_R_dist_izq = findIntersection(ann_center_dist_izq, norm_perp_2_izq_dist, wall_R_dist_izq_p1, wall_R_dist_izq_p2);
+
+    if (isect_L_dist_izq && isect_R_dist_izq) {
+        createAnnotation(allAnnotationsGroup, isect_L_dist_izq.x, isect_L_dist_izq.y, isect_R_dist_izq.x, isect_R_dist_izq.y, d_iliaca_dist_izq, false, -8);
+    } else {
+        createAnnotation(allAnnotationsGroup, l_dist_L.x, l_dist_L.y, l_dist_R.x, l_dist_R.y, d_iliaca_dist_izq, false, -8);
+    }
+    const t_acceso = 0.5;
+    const p_acceso_der = getCubicBezierPoint(t_acceso, p0_der, cp1_der, cp2_der, p3_der);
+    const tangent_acceso_der = getCubicBezierTangent(t_acceso, p0_der, cp1_der, cp2_der, p3_der);
+    const normal_acceso_der = { x: -tangent_acceso_der.y, y: tangent_acceso_der.x };
+    const mag_acceso_der = Math.sqrt(normal_acceso_der.x**2 + normal_acceso_der.y**2);
+    const norm_acceso_der = { x: normal_acceso_der.x / mag_acceso_der, y: normal_acceso_der.y / mag_acceso_der };
+    const offset_acceso_der = d_acceso_der / 2;
+    const p_l_acceso_der = { x: p_acceso_der.x - norm_acceso_der.x * offset_acceso_der, y: p_acceso_der.y - norm_acceso_der.y * offset_acceso_der };
+    const p_r_acceso_der = { x: p_acceso_der.x + norm_acceso_der.x * offset_acceso_der, y: p_acceso_der.y + norm_acceso_der.y * offset_acceso_der };
+    createAnnotation(allAnnotationsGroup, p_l_acceso_der.x, p_l_acceso_der.y, p_r_acceso_der.x, p_r_acceso_der.y, d_acceso_der);
+    const t_acceso_izq = 0.5;
+    const p_acceso_izq = getCubicBezierPoint(t_acceso_izq, p0_izq, cp1_izq, cp2_izq, p3_izq);
+    const tangent_acceso_izq = getCubicBezierTangent(t_acceso_izq, p0_izq, cp1_izq, cp2_izq, p3_izq);
+    const normal_acceso_izq = { x: -tangent_acceso_izq.y, y: tangent_acceso_izq.x };
+    const mag_acceso_izq = Math.sqrt(normal_acceso_izq.x**2 + normal_acceso_izq.y**2);
+    const norm_acceso_izq = { x: normal_acceso_izq.x / mag_acceso_izq, y: normal_acceso_izq.y / mag_acceso_izq };
+    const offset_acceso_izq = d_acceso_izq / 2;
+    const p_l_acceso_izq = { x: p_acceso_izq.x - norm_acceso_izq.x * offset_acceso_izq, y: p_acceso_izq.y - norm_acceso_izq.y * offset_acceso_izq };
+    const p_r_acceso_izq = { x: p_acceso_izq.x + norm_acceso_izq.x * offset_acceso_izq, y: p_acceso_izq.y + norm_acceso_izq.y * offset_acceso_izq };
+    createAnnotation(allAnnotationsGroup, p_l_acceso_izq.x, p_l_acceso_izq.y, p_r_acceso_izq.x, p_r_acceso_izq.y, d_acceso_izq);
+
+    const y_renal_baja = Math.max(y_renal_der, y_renal_izq);
+    const p_fin_cuello = p_cuello_end_center_rotated;
+    const p_bif_aorta = p_aneurisma_end_center;
+    const p_bif_iliaca_der = p_bif_iliaca_der_center;
+    const p_bif_iliaca_izq = p_bif_iliaca_izq_center;
+
+    const mainBBox = mainGroup.getBBox();
+
+    dibujarMedidasLongitud(annotationsContainer, y_renal_baja, p_fin_cuello, p_bif_aorta, p_bif_iliaca_der, p_bif_iliaca_izq, largoCuello, l2, l3, l4, mainBBox);
+
+    const bbox = mainGroup.getBBox();
+    const viewBox = svg.viewBox.baseVal;
+    const PADDING_RATIO = 0.8;
+
+    const scaleX = (viewBox.width * PADDING_RATIO) / bbox.width;
+    const scaleY = (viewBox.height * PADDING_RATIO) / bbox.height;
+    const scale = Math.min(1, scaleX, scaleY);
+
+    const scaledWidth = bbox.width * scale;
+    const scaledHeight = bbox.height * scale;
+
+    const translateX = (viewBox.width - scaledWidth) / 2 - (bbox.x * scale);
+    const translateY = (viewBox.height - scaledHeight) / 2 - (bbox.y * scale);
+
+    const transform = `translate(${translateX}, ${translateY}) scale(${scale})`
+    mainGroup.setAttribute('transform', transform);
+    annotationsContainer.setAttribute('transform', transform);
+
+    // The manual drawing group is independent of the main diagram's transform
+    const manualDrawingsGroup = document.getElementById('manual-drawings-group');
+    if (manualDrawingsGroup) {
+        manualDrawingsGroup.removeAttribute('transform');
+    }
+
+    // Posicionamiento final de viñetas (después de escalar)
+    let finalRenalX = (p_renal_start.x * scale) + translateX;
+    const endoprotesisGroup = document.getElementById('endoprotesis-display-group');
+    const endoprotesisRect = endoprotesisGroup.getBBox();
+    const endoprotesisX = 217; // Posición X fija de la viñeta de endoprótesis
+
+    const renalGroup = document.getElementById('proyeccion-display-group');
+    const renalRect = renalGroup.getBBox();
+
+    if (finalRenalX + renalRect.width > endoprotesisX - 20) {
+        finalRenalX = endoprotesisX - renalRect.width - 20;
+    }
+
+    renalGroup.setAttribute('transform', `translate(${finalRenalX - 10}, 3)`);
+
+    const finalIliacDerX = (p_bif_iliaca_der_center.x * scale) + translateX;
+    document.getElementById('hipogastrica-derecha-display-group').setAttribute('transform', `translate(${finalIliacDerX - 10}, 193)`);
+
+    const finalIliacIzqX = (p_bif_iliaca_izq_center.x * scale) + translateX;
+    document.getElementById('hipogastrica-izquierda-display-group').setAttribute('transform', `translate(${finalIliacIzqX - 10}, 193)`);
+    
+    // Z-index is handled by updateZIndex function
+
+    if (window.redrawExtras) {
+        window.redrawExtras();
+    }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+window.onload = () => {
+    try {
+    document.getElementById('renal_baja').addEventListener('input', generarDiagrama);
+
+    const limits = {
+        'diámetro_cuello_proximal': { min: 10, max: 40 },
+        'diámetro_cuello_medio': { min: 10, max: 40 },
+        'diámetro_cuello_distal': { min: 10, max: 40 },
+        'largo_cuello': { min: 5, max: 50 },
+        'angulo_beta': { min: -100, max: 100 },
+        'diámetro_aneurisma': { min: 20, max: 150 },
+        'diámetro_bifurcacion': { min: 10, max: 50 },
+        'l2': { min: 20, max: 200 },
+        'diámetro_iliaca_prox_derecha': { min: 5, max: 30 },
+        'diámetro_iliaca_medio_derecha': { min: 5, max: 30 },
+        'diámetro_iliaca_dist_derecha': { min: 5, max: 30 },
+        'diámetro_acceso_derecho': { min: 4, max: 20 },
+        'l3': { min: 50, max: 250 },
+        'diámetro_iliaca_prox_izquierda': { min: 5, max: 30 },
+        'diámetro_iliaca_medio_izquierda': { min: 5, max: 30 },
+        'diámetro_iliaca_dist_izquierda': { min: 5, max: 30 },
+        'diámetro_acceso_izquierdo': { min: 4, max: 20 },
+        'l4': { min: 50, max: 250 },
+        'diametro_hipogastrica_prox_derecha': { min: 4, max: 20 },
+        'diametro_hipogastrica_dist_derecha': { min: 4, max: 20 },
+        'largo_hipogastrica_derecha': { min: 5, max: 50 },
+        'diametro_hipogastrica_prox_izquierda': { min: 4, max: 20 },
+        'diametro_hipogastrica_dist_izquierda': { min: 4, max: 20 },
+        'largo_hipogastrica_izquierda': { min: 5, max: 50 },
+        'proyeccion_renal': { min: -60, max: 60 },
+        'oblicuidad_renal': { min: -60, max: 60 },
+        'proyeccion_hipogastrica_derecha': { min: -60, max: 60 },
+        'oblicuidad_hipogastrica_derecha': { min: -60, max: 60 },
+        'proyeccion_hipogastrica_izquierda': { min: -60, max: 60 },
+        'oblicuidad_hipogastrica_izquierda': { min: -60, max: 60 },
+    };
+
+    function updateVisualFeedback(input) {
+        const controlGrupo = input.closest('.control-grupo');
+        const limit = limits[input.id];
+        if (limit) {
+            const value = parseInt(input.value, 10);
+            if (value >= limit.max || value <= limit.min) {
+                controlGrupo.classList.add('limit-reached');
+            } else {
+                controlGrupo.classList.remove('limit-reached');
+            }
+        }
+    }
+
+    function setupSteppers() {
+        const steppers = document.querySelectorAll('.input-stepper');
+        steppers.forEach(stepper => {
+            const input = stepper.querySelector('input[type="number"]');
+            const minusBtn = stepper.querySelector('.minus');
+            const plusBtn = stepper.querySelector('.plus');
+            let interval;
+
+            const changeValue = (step) => {
+                const currentValue = parseInt(input.value, 10);
+                const newValue = currentValue + step;
+                const limit = limits[input.id];
+                if (limit && (newValue < limit.min || newValue > limit.max)) {
+                    return;
+                }
+                input.value = newValue;
+                updateVisualFeedback(input);
+            };
+
+            minusBtn.addEventListener('mousedown', () => {
+                changeValue(-1);
+                interval = setInterval(() => changeValue(-1), 100);
+            });
+
+            plusBtn.addEventListener('mousedown', () => {
+                changeValue(1);
+                interval = setInterval(() => changeValue(1), 100);
+            });
+
+            const stopInterval = () => {
+                clearInterval(interval);
+                generarDiagrama();
+                if (input.id.startsWith('proyeccion') || input.id.startsWith('oblicuidad')) {
+                    updateArcoCDisplay();
+                }
+            };
+
+            minusBtn.addEventListener('mouseup', stopInterval);
+            minusBtn.addEventListener('mouseleave', stopInterval);
+            plusBtn.addEventListener('mouseup', stopInterval);
+            plusBtn.addEventListener('mouseleave', stopInterval);
+
+            input.addEventListener('input', () => {
+                generarDiagrama();
+            });
+        });
+    }
+
+    setupSteppers();
+
+    const ramificadoIliacoBtn = document.getElementById('ramificado_iliaco_btn');
+    const ramificadoIliacoControles = document.getElementById('ramificado-iliaco-controles');
+    ramificadoIliacoBtn.addEventListener('click', () => {
+        const isHidden = ramificadoIliacoControles.style.display === 'none';
+        ramificadoIliacoControles.style.display = isHidden ? 'flex' : 'none';
+        ramificadoIliacoBtn.textContent = isHidden ? '-' : '+';
+        generarDiagrama();
+    });
+
+    const ramificadoDerechoSwitch = document.getElementById('ramificado_derecho_switch');
+    const ramificadoDerechoControles = document.getElementById('ramificado-derecho-controles');
+    const endoprotesisRamificadoDerecho = document.getElementById('endoprotesis-ramificado-derecho');
+
+    ramificadoDerechoSwitch.addEventListener('change', () => {
+        const isChecked = ramificadoDerechoSwitch.checked;
+        ramificadoDerechoControles.style.display = isChecked ? 'block' : 'none';
+        endoprotesisRamificadoDerecho.style.display = isChecked ? 'block' : 'none';
+        generarDiagrama();
+        updateEndoprotesisDisplay();
+    });
+
+    const ramificadoIzquierdoSwitch = document.getElementById('ramificado_izquierdo_switch');
+    const ramificadoIzquierdoControles = document.getElementById('ramificado-izquierdo-controles');
+    const endoprotesisRamificadoIzquierdo = document.getElementById('endoprotesis-ramificado-izquierdo');
+
+    ramificadoIzquierdoSwitch.addEventListener('change', () => {
+        const isChecked = ramificadoIzquierdoSwitch.checked;
+        ramificadoIzquierdoControles.style.display = isChecked ? 'block' : 'none';
+        endoprotesisRamificadoIzquierdo.style.display = isChecked ? 'block' : 'none';
+        generarDiagrama();
+        updateEndoprotesisDisplay();
+    });
+
+    
+    const addExtraPointBtn = document.getElementById('add-extra-point-btn');
+    const extrasContainer = document.getElementById('extras-container');
+    let isAddingReferenceLine = false;
+    let referenceLines = [];
+    let selectedHandle = null;
+    let selectedLine = null;
+    let offset = { x: 0, y: 0 };
+
+    addExtraPointBtn.addEventListener('click', () => {
+        isAddingReferenceLine = !isAddingReferenceLine;
+        addExtraPointBtn.classList.toggle('active', isAddingReferenceLine);
+        document.getElementById('area-diagrama').classList.toggle('adding-point', isAddingReferenceLine);
+    });
+
+    document.getElementById('diagrama_svg').addEventListener('click', (e) => {
+        if (!isAddingReferenceLine) return;
+
+        const svg = e.currentTarget;
+        const CTM = svg.getScreenCTM().inverse();
+        const pt = new DOMPoint(e.clientX, e.clientY);
+        const svgP = pt.matrixTransform(CTM);
+
+        const mainGroup = document.getElementById('drawing-group');
+        const transform = mainGroup.getAttribute('transform');
+        
+        let scale = 1, translateX = 0, translateY = 0;
+        if (transform) {
+            const scaleMatch = /scale\(([^)]+)\)/.exec(transform);
+            const translateMatch = /translate\(([^)]+)\)/.exec(transform);
+            if (scaleMatch) scale = parseFloat(scaleMatch[1]);
+            if (translateMatch) [translateX, translateY] = translateMatch[1].split(',').map(parseFloat);
+        }
+
+        const finalX = (svgP.x - translateX) / scale;
+        const finalY = (svgP.y - translateY) / scale;
+
+        const lineId = `reference-line-${referenceLines.length}`;
+        const letter = String.fromCharCode(65 + referenceLines.length);
+        const newLine = {
+            id: lineId,
+            letter: letter,
+            p1: { x: finalX - 20, y: finalY },
+            p2: { x: finalX + 20, y: finalY },
+            desc: '',
+            valor: ''
+        };
+        referenceLines.push(newLine);
+
+        createReferenceLineUI(newLine);
+        drawReferenceLines();
+        updateExtrasVignette();
+
+        isAddingReferenceLine = false;
+        addExtraPointBtn.classList.remove('active');
+        document.getElementById('area-diagrama').classList.remove('adding-point');
+    });
+
+    function createReferenceLineUI(line) {
+        const row = document.createElement('div');
+        row.classList.add('extra-point-row');
+        row.dataset.lineId = line.id;
+
+        row.innerHTML = `
+            <label>${line.letter}</label>
+            <input type="text" class="reference-line-valor" placeholder="Valor" style="width: 50px;">
+            <input type="text" class="reference-line-desc" placeholder="Descripción">
+            <button class="delete-btn">🗑️</button>
+        `;
+
+        extrasContainer.appendChild(row);
+
+        row.querySelector('.delete-btn').addEventListener('click', () => {
+            referenceLines = referenceLines.filter(l => l.id !== line.id);
+            row.remove();
+            updateReferenceLinesLetters();
+            drawReferenceLines();
+            updateExtrasVignette();
+        });
+
+        row.querySelector('.reference-line-desc').addEventListener('input', (e) => {
+            line.desc = e.target.value;
+            updateExtrasVignette();
+        });
+
+        row.querySelector('.reference-line-valor').addEventListener('input', (e) => {
+            line.valor = e.target.value;
+            drawReferenceLines();
+        });
+    }
+
+    function updateReferenceLinesLetters() {
+        const rows = extrasContainer.querySelectorAll('.extra-point-row');
+        rows.forEach((row, index) => {
+            const newLetter = String.fromCharCode(65 + index);
+            row.querySelector('label').textContent = newLetter;
+            const lineId = row.dataset.lineId;
+            const line = referenceLines.find(l => l.id === lineId);
+            if(line) line.letter = newLetter;
+        });
+        drawReferenceLines();
+        updateExtrasVignette();
+    }
+
+    function drawReferenceLines() {
+        let existingGroup = document.getElementById('reference-lines-group');
+        if (existingGroup) {
+            existingGroup.remove();
+        }
+
+        const referenceLinesGroup = document.createElementNS(SVG_NS, 'g');
+        referenceLinesGroup.id = 'reference-lines-group';
+        
+        const annotationsContainer = document.getElementById('all-annotations-container');
+        if (annotationsContainer) {
+            annotationsContainer.appendChild(referenceLinesGroup);
+        } else {
+            // Fallback if the container is not ready
+            document.getElementById('diagrama_svg').appendChild(referenceLinesGroup);
+        }
+
+        referenceLines.forEach(line => {
+            const lineElement = document.createElementNS(SVG_NS, 'line');
+            lineElement.setAttribute('x1', line.p1.x);
+            lineElement.setAttribute('y1', line.p1.y);
+            lineElement.setAttribute('x2', line.p2.x);
+            lineElement.setAttribute('y2', line.p2.y);
+            lineElement.setAttribute('stroke', 'black');
+            lineElement.setAttribute('stroke-width', '0.5');
+            lineElement.style.cursor = 'move';
+            referenceLinesGroup.appendChild(lineElement);
+
+            const handle1 = createDraggableHandle(line, 'p1');
+            const handle2 = createDraggableHandle(line, 'p2');
+            referenceLinesGroup.appendChild(handle1);
+            referenceLinesGroup.appendChild(handle2);
+            
+            const bracket1 = createBracket(line.p1, line.p2);
+            const bracket2 = createBracket(line.p2, line.p1);
+            referenceLinesGroup.appendChild(bracket1);
+            referenceLinesGroup.appendChild(bracket2);
+
+            const letterLabel = document.createElementNS(SVG_NS, 'text');
+            letterLabel.setAttribute('x', (line.p1.x + line.p2.x) / 2 - 5);
+            letterLabel.setAttribute('y', (line.p1.y + line.p2.y) / 2 - 5);
+            letterLabel.setAttribute('class', 'extra-point-letter-label');
+            letterLabel.textContent = line.letter;
+            referenceLinesGroup.appendChild(letterLabel);
+
+            if (line.valor) {
+                const valorLabel = document.createElementNS(SVG_NS, 'text');
+                valorLabel.setAttribute('x', line.p2.x + 5);
+                valorLabel.setAttribute('y', line.p2.y);
+                valorLabel.setAttribute('class', 'annotation-text');
+                valorLabel.setAttribute('text-anchor', 'start');
+                valorLabel.textContent = line.valor;
+                referenceLinesGroup.appendChild(valorLabel);
+
+                const textBBox = valorLabel.getBBox();
+                const bg = document.createElementNS(SVG_NS, 'rect');
+                bg.setAttribute('x', textBBox.x - 1);
+                bg.setAttribute('y', textBBox.y - 1);
+                bg.setAttribute('width', textBBox.width + 2);
+                bg.setAttribute('height', textBBox.height + 2);
+                bg.setAttribute('class', 'annotation-text-bg');
+                referenceLinesGroup.insertBefore(bg, valorLabel);
+            }
+
+            lineElement.addEventListener('mousedown', (e) => {
+                selectedLine = { line, element: lineElement };
+                const CTM = document.getElementById('diagrama_svg').getScreenCTM();
+                offset.x = (e.clientX - CTM.e) / CTM.a;
+                offset.y = (e.clientY - CTM.f) / CTM.d;
+            });
+        });
+    }
+    window.redrawExtras = drawReferenceLines;
+
+    function createDraggableHandle(line, pointKey) {
+        const handle = document.createElementNS(SVG_NS, 'circle');
+        handle.setAttribute('cx', line[pointKey].x);
+        handle.setAttribute('cy', line[pointKey].y);
+        handle.setAttribute('r', 2);
+        handle.setAttribute('fill', 'blue');
+        handle.style.cursor = 'pointer';
+
+        handle.addEventListener('mousedown', (e) => {
+            selectedHandle = { line, pointKey, handle };
+        });
+
+        return handle;
+    }
+    
+    function createBracket(p1, p2) {
+        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+        const bracket_width = 5;
+
+        const p1_bracket1 = {
+            x: p1.x - bracket_width / 2 * Math.sin(angle),
+            y: p1.y + bracket_width / 2 * Math.cos(angle)
+        };
+        const p1_bracket2 = {
+            x: p1.x + bracket_width / 2 * Math.sin(angle),
+            y: p1.y - bracket_width / 2 * Math.cos(angle)
+        };
+
+        const bracket = document.createElementNS(SVG_NS, 'path');
+        bracket.setAttribute('d', `M ${p1_bracket1.x} ${p1_bracket1.y} L ${p1_bracket2.x} ${p1_bracket2.y}`);
+        bracket.setAttribute('stroke', 'black');
+        bracket.setAttribute('stroke-width', '0.5');
+        return bracket;
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        if (selectedControlPoint) {
+            const svg = document.getElementById('diagrama_svg');
+            const CTM = svg.getScreenCTM().inverse();
+            const pt = new DOMPoint(e.clientX, e.clientY);
+            const svgP = pt.matrixTransform(CTM);
+
+            const mainGroup = document.getElementById('drawing-group');
+            const transform = mainGroup.getAttribute('transform');
+            
+            let scale = 1, translateX = 0, translateY = 0;
+            if (transform) {
+                const scaleMatch = /scale\(([^)]+)\)/.exec(transform);
+                const translateMatch = /translate\(([^)]+)\)/.exec(transform);
+                if (scaleMatch) scale = parseFloat(scaleMatch[1]);
+                if (translateMatch) [translateX, translateY] = translateMatch[1].split(',').map(parseFloat);
+            }
+
+            const mouseX = (svgP.x - translateX) / scale;
+            const mouseY = (svgP.y - translateY) / scale;
+
+            const { side, index } = selectedControlPoint;
+            controlPoints[side][index] = { x: mouseX - offset.x, y: mouseY - offset.y };
+            
+            generarDiagrama();
+        } else if (selectedHandle) {
+            e.preventDefault();
+            const svg = document.getElementById('diagrama_svg');
+            const CTM = svg.getScreenCTM().inverse();
+            const pt = new DOMPoint(e.clientX, e.clientY);
+            const svgP = pt.matrixTransform(CTM);
+
+            const mainGroup = document.getElementById('drawing-group');
+            const transform = mainGroup.getAttribute('transform');
+            
+            let scale = 1, translateX = 0, translateY = 0;
+            if (transform) {
+                const scaleMatch = /scale\(([^)]+)\)/.exec(transform);
+                const translateMatch = /translate\(([^)]+)\)/.exec(transform);
+                if (scaleMatch) scale = parseFloat(scaleMatch[1]);
+                if (translateMatch) [translateX, translateY] = translateMatch[1].split(',').map(parseFloat);
+            }
+
+            const finalX = (svgP.x - translateX) / scale;
+            const finalY = (svgP.y - translateY) / scale;
+
+            const { line, pointKey } = selectedHandle;
+            line[pointKey] = { x: finalX, y: finalY };
+            
+            drawReferenceLines();
+            updateExtrasVignette();
+        } else if (selectedLine) {
+            e.preventDefault();
+            const svg = document.getElementById('diagrama_svg');
+            const CTM = svg.getScreenCTM();
+
+            const mainGroup = document.getElementById('drawing-group');
+            const transform = mainGroup.getAttribute('transform');
+            
+            let scale = 1;
+            if (transform) {
+                const scaleMatch = /scale\(([^)]+)\)/.exec(transform);
+                if (scaleMatch) scale = parseFloat(scaleMatch[1]);
+            }
+
+            const movementX = e.movementX / (CTM.a * scale);
+            const movementY = e.movementY / (CTM.d * scale);
+
+            selectedLine.line.p1.x += movementX;
+            selectedLine.line.p1.y += movementY;
+            selectedLine.line.p2.x += movementX;
+            selectedLine.line.p2.y += movementY;
+
+            drawReferenceLines();
+            updateExtrasVignette();
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        selectedControlPoint = null;
+        selectedHandle = null;
+        selectedLine = null;
+    });
+
+    function updateExtrasVignette() {
+        const extrasDisplayGroup = document.getElementById('extras-display-group');
+        const extrasDisplaySvg = document.getElementById('extras-display-svg');
+        extrasDisplaySvg.innerHTML = '';
+
+        if (referenceLines.length === 0) {
+            extrasDisplayGroup.style.display = 'none';
+            updateVignetteLayout();
+            return;
+        }
+
+        extrasDisplayGroup.style.display = 'block';
+        
+        let isFirstTspan = true; // Add this flag
+        referenceLines.forEach(line => {
+            const tspan = document.createElementNS(SVG_NS, 'tspan');
+            tspan.setAttribute('x', 2);
+            // Conditionally add dy
+            if (!isFirstTspan) {
+                tspan.setAttribute('dy', '4');
+            }
+            
+            const letterSpan = document.createElementNS(SVG_NS, 'tspan');
+            letterSpan.setAttribute('font-weight', 'bold');
+            letterSpan.textContent = `${line.letter}: `;
+            tspan.appendChild(letterSpan);
+
+            const descSpan = document.createElementNS(SVG_NS, 'tspan');
+            descSpan.textContent = line.desc;
+            tspan.appendChild(descSpan);
+
+            extrasDisplaySvg.appendChild(tspan);
+            isFirstTspan = false; // Set to false after the first tspan
+        });
+
+        // Add the empty tspan at the end
+        const emptyTspan = document.createElementNS(SVG_NS, 'tspan');
+        emptyTspan.setAttribute('x', 2);
+        emptyTspan.setAttribute('dy', '4');
+        emptyTspan.textContent = '\u00A0'; // Non-breaking space
+        extrasDisplaySvg.appendChild(emptyTspan);
+
+        updateVignetteLayout();
+    }
+
+    function updateVignetteLayout() {
+        const endoprotesisGroup = document.getElementById('endoprotesis-display-group');
+        const endoBackgroundRect = endoprotesisGroup.querySelector('rect');
+        const endoClipRect = document.querySelector('#clip-endoprotesis rect');
+        
+        let endoTextBBoxHeight = 0;
+        const endoTextElements = endoprotesisGroup.querySelectorAll('text');
+        let lastY = 0;
+        endoTextElements.forEach(text => {
+            if (text.innerHTML.trim() !== '') {
+                const y = parseFloat(text.getAttribute('y'));
+                if (y > lastY) {
+                    lastY = y;
+                }
+            }
+        });
+        endoTextBBoxHeight = lastY > 0 ? lastY + 4 : 20;
+
+
+        const endoNewHeight = endoTextBBoxHeight; 
+
+        endoBackgroundRect.setAttribute('height', endoNewHeight);
+        endoClipRect.setAttribute('height', endoNewHeight);
+
+        const observacionesGroup = document.getElementById('observaciones-display-group');
+        const newObsY = 5 + endoNewHeight + 5;
+        observacionesGroup.setAttribute('transform', `translate(217, ${newObsY})`);
+
+        const obsBackgroundRect = observacionesGroup.querySelector('rect');
+        const obsClipRect = document.querySelector('#clip-observaciones rect');
+        
+        let obsTextBBoxHeight = 0;
+        const obsTextElements = observacionesGroup.querySelectorAll('text');
+        obsTextElements.forEach(text => {
+            const bbox = text.getBBox();
+            obsTextBBoxHeight += bbox.height;
+        });
+
+        const obsNewHeight = obsTextBBoxHeight + 4;
+
+        obsBackgroundRect.setAttribute('height', obsNewHeight);
+        obsClipRect.setAttribute('height', obsNewHeight);
+
+        const extrasGroup = document.getElementById('extras-display-group');
+        const newExtrasY = newObsY + obsNewHeight + 5;
+        extrasGroup.setAttribute('transform', `translate(217, ${newExtrasY})`);
+
+        const extrasBackgroundRect = extrasGroup.querySelector('rect');
+        const extrasClipRect = document.querySelector('#clip-extras rect');
+
+        let extrasTextBBoxHeight = 0;
+        const extrasTextElements = extrasGroup.querySelectorAll('text');
+        extrasTextElements.forEach(text => {
+            const bbox = text.getBBox();
+            extrasTextBBoxHeight += bbox.height;
+        });
+
+        const extrasNewHeight = extrasTextBBoxHeight + 4; // Add some padding
+
+        extrasBackgroundRect.setAttribute('height', extrasNewHeight);
+        extrasClipRect.setAttribute('height', extrasNewHeight);
+    }
+
+    function updateObservacionesDisplay() {
+        const observations = document.getElementById('device_observations').value;
+        const observationsSvg = document.getElementById('device-observations-svg');
+        observationsSvg.innerHTML = '';
+
+        const lines = observations.split('\n');
+        const maxWidth = 70;
+        let isFirstTspan = true;
+
+        lines.forEach(lineTxt => {
+            const words = lineTxt.split(' ');
+            let tspan = document.createElementNS(SVG_NS, 'tspan');
+            tspan.setAttribute('x', 2);
+            if (!isFirstTspan) {
+                tspan.setAttribute('dy', '4');
+            }
+            observationsSvg.appendChild(tspan);
+            
+            let line = '';
+            words.forEach(word => {
+                const testLine = line + (line ? ' ' : '') + word;
+                tspan.textContent = testLine;
+                if (tspan.getComputedTextLength() > maxWidth && line !== '') {
+                    tspan.textContent = line;
+                    tspan = document.createElementNS(SVG_NS, 'tspan');
+                    tspan.setAttribute('x', 2);
+                    tspan.setAttribute('dy', '4');
+                    observationsSvg.appendChild(tspan);
+                    line = word;
+                    tspan.textContent = line;
+                } else {
+                    line = testLine;
+                }
+            });
+            isFirstTspan = false;
+        });
+
+        const emptyTspan = document.createElementNS(SVG_NS, 'tspan');
+        emptyTspan.setAttribute('x', 2);
+        emptyTspan.setAttribute('dy', '4');
+        emptyTspan.textContent = '\u00A0'; // Non-breaking space
+        observationsSvg.appendChild(emptyTspan);
+
+        updateVignetteLayout();
+    }
+
+    
+    function updateArcoCDisplay() {
+        const proyeccionRenal = parseInt(document.getElementById('proyeccion_renal').value, 10) || 0;
+        const oblicuidadRenal = parseInt(document.getElementById('oblicuidad_renal').value, 10) || 0;
+        const proyeccionHipoDer = parseInt(document.getElementById('proyeccion_hipogastrica_derecha').value, 10) || 0;
+        const oblicuidadHipoDer = parseInt(document.getElementById('oblicuidad_hipogastrica_derecha').value, 10) || 0;
+        const proyeccionHipoIzq = parseInt(document.getElementById('proyeccion_hipogastrica_izquierda').value, 10) || 0;
+        const oblicuidadHipoIzq = parseInt(document.getElementById('oblicuidad_hipogastrica_izquierda').value, 10) || 0;
+
+        document.getElementById('proyeccion-display-svg').textContent = `${proyeccionRenal < 0 ? 'CAU' : 'CRA'} ${Math.abs(proyeccionRenal)}°`;
+        document.getElementById('oblicuidad-display-svg').textContent = `${oblicuidadRenal < 0 ? 'IZQ' : 'DER'} ${Math.abs(oblicuidadRenal)}°`;
+        document.getElementById('hipogastrica-derecha-proyeccion-svg').textContent = `${proyeccionHipoDer < 0 ? 'CAU' : 'CRA'} ${Math.abs(proyeccionHipoDer)}°`;
+        document.getElementById('hipogastrica-derecha-oblicuidad-svg').textContent = `${oblicuidadHipoDer < 0 ? 'IZQ' : 'DER'} ${Math.abs(oblicuidadHipoDer)}°`;
+        document.getElementById('hipogastrica-izquierda-proyeccion-svg').textContent = `${proyeccionHipoIzq < 0 ? 'CAU' : 'CRA'} ${Math.abs(proyeccionHipoIzq)}°`;
+        document.getElementById('hipogastrica-izquierda-oblicuidad-svg').textContent = `${oblicuidadHipoIzq < 0 ? 'IZQ' : 'DER'} ${Math.abs(oblicuidadHipoIzq)}°`;
+    }
+
+    document.getElementById('proyeccion_renal').addEventListener('input', () => {
+        generarDiagrama();
+        updateArcoCDisplay();
+    });
+    document.getElementById('oblicuidad_renal').addEventListener('input', () => {
+        generarDiagrama();
+        updateArcoCDisplay();
+    });
+    document.getElementById('proyeccion_hipogastrica_derecha').addEventListener('input', () => {
+        generarDiagrama();
+        updateArcoCDisplay();
+    });
+    document.getElementById('oblicuidad_hipogastrica_derecha').addEventListener('input', () => {
+        generarDiagrama();
+        updateArcoCDisplay();
+    });
+    document.getElementById('proyeccion_hipogastrica_izquierda').addEventListener('input', () => {
+        generarDiagrama();
+        updateArcoCDisplay();
+    });
+    document.getElementById('oblicuidad_hipogastrica_izquierda').addEventListener('input', () => {
+        generarDiagrama();
+        updateArcoCDisplay();
+    });
+
+    function updatePatientDataDisplay() {
+        const name = document.getElementById('patient_name').value;
+        const lastname = document.getElementById('patient_lastname').value;
+        const id = document.getElementById('patient_id').value;
+        const dateInput = document.getElementById('procedure_date').value;
+
+        document.getElementById('patient-name-svg').textContent = ` ${name}`;
+        document.getElementById('patient-lastname-svg').textContent = ` ${lastname}`;
+        document.getElementById('patient-id-svg').textContent = ` ${id}`;
+
+        if (dateInput) {
+            const date = new Date(dateInput + 'T00:00:00');
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = date.toLocaleString('es-ES', { month: 'long' });
+            const year = date.getFullYear();
+            document.getElementById('procedure-date-svg').textContent = ` ${day}-${month}-${year}`;
+        } else {
+            document.getElementById('procedure-date-svg').textContent = '';
+        }
+    }
+
+    document.getElementById('patient_name').addEventListener('input', updatePatientDataDisplay);
+    document.getElementById('patient_lastname').addEventListener('input', updatePatientDataDisplay);
+    document.getElementById('patient_id').addEventListener('input', updatePatientDataDisplay);
+    document.getElementById('procedure_date').addEventListener('input', updatePatientDataDisplay);
+
+    const deviceIFUs = {
+        'Anaconda': 'https://terumoaortic.com/wp-content/uploads/2023/06/Anaconda-LoPro90-Product-Brochure-A4-PM-04515-Global.pdf',
+        'E-tegra': 'https://arlab.cl/wp-content/uploads/2023/02/Brochure-E-tegra.pdf',
+        'Endurant II': 'https://europe.medtronic.com/content/dam/medtronic-wide/public/western-europe/products/cardiac-vascular/cardiovascular/aortic-stent-grafts/aortic-product-catalogue.pdf',
+        'Endurant IIs': 'https://europe.medtronic.com/content/dam/medtronic-wide/public/western-europe/products/cardiac-vascular/cardiovascular/aortic-stent-grafts/aortic-product-catalogue.pdf',
+        'Excluder': 'https://www.goremedical.com/la/resource/25ar1208-en01',
+        'Treo': 'https://terumoaortic.com/wp-content/uploads/2023/06/TREO-Product-Brochure-Letter-PM-08649-USA-1.pdf',
+        'Zenith Alph': 'https://www.cookmedical.eu/aortic-intervention/wp-content/uploads/sites/4/2015/05/D16458-EN_Int.pdf',
+        'Zenith Flex': 'https://www.cookmedical.eu/aortic-intervention/wp-content/uploads/sites/4/2015/05/D16458-EN_Int.pdf',
+        'E-Iliac': 'https://arlab.cl/wp-content/uploads/2023/09/E-liac_Brochure_ES_V04_03_2020.pdf',
+        'Excluder Iliaco': 'https://www.goremedical.com/la/resource/25ar1208-en01',
+        'Zenith Iliaco': 'https://cdnnamsseuspwsprod.azureedge.net/data/resources/AI-WF186149-EN-F_M3_1749243008532.pdf'
+    };
+
+    function updateEndoprotesisDisplay() {
+        const deviceSelect = document.getElementById('device_type');
+        const selectedOption = deviceSelect.options[deviceSelect.selectedIndex];
+        const deviceValue = selectedOption.value;
+        const deviceText = selectedOption.text;
+        const deviceTypeSvg = document.getElementById('device-type-svg');
+        const ifusButton = document.getElementById('ifus_button');
+        
+        // Limpiar contenido anterior
+        while (deviceTypeSvg.firstChild) {
+            deviceTypeSvg.removeChild(deviceTypeSvg.firstChild);
+        }
+
+        const ifuLink = deviceIFUs[deviceValue];
+        if (ifuLink) {
+            deviceTypeSvg.textContent = ` ${deviceText}`;
+            deviceTypeSvg.setAttribute('style', 'fill:blue; text-decoration:underline; cursor:pointer;');
+            const textNode = deviceTypeSvg.parentNode;
+            const newTextNode = textNode.cloneNode(true);
+            textNode.parentNode.replaceChild(newTextNode, textNode);
+            newTextNode.addEventListener('click', () => window.open(ifuLink, '_blank'));
+            ifusButton.style.display = 'block';
+            ifusButton.onclick = () => window.open(ifuLink, '_blank');
+        } else {
+            deviceTypeSvg.textContent = ` ${deviceText}`;
+            deviceTypeSvg.removeAttribute('style');
+            const textNode = deviceTypeSvg.parentNode;
+            const newTextNode = textNode.cloneNode(true);
+            textNode.parentNode.replaceChild(newTextNode, textNode);
+            ifusButton.style.display = 'none';
+        }
+
+        const deviceBody = document.getElementById('device_body').value;
+        const deviceBodyFr = document.getElementById('device_body_fr').value;
+        document.getElementById('device-body-svg').textContent = ` ${deviceBody}` + (deviceBodyFr ? ` (${deviceBodyFr}Fr)` : '');
+
+        const ipsiSide = document.querySelector('input[name="ipsi_side"]:checked').value;
+        const ipsiBranch = document.getElementById('ipsi_branch').value;
+        const ipsiBranchFr = document.getElementById('ipsi_branch_fr').value;
+        document.getElementById('ipsi-branch-svg').textContent = ` (${ipsiSide}) ${ipsiBranch}` + (ipsiBranchFr ? ` (${ipsiBranchFr}Fr)` : '');
+
+        const contraBranch = document.getElementById('contra_branch').value;
+        const contraBranchFr = document.getElementById('contra_branch_fr').value;
+        document.getElementById('contra-branch-svg').textContent = ` ${contraBranch}` + (contraBranchFr ? ` (${contraBranchFr}Fr)` : '');
+
+        const updateIbdDeviceLink = (selectId, svgId, label, ifusButtonId) => {
+            const select = document.getElementById(selectId);
+            const option = select.options[select.selectedIndex];
+            const value = option.value;
+            const text = option.text;
+            const svgElement = document.getElementById(svgId);
+            const ifusButton = document.getElementById(ifusButtonId);
+
+            while (svgElement.firstChild) {
+                svgElement.removeChild(svgElement.firstChild);
+            }
+
+            if (text) {
+                const titleSpan = document.createElementNS(SVG_NS, 'tspan');
+                titleSpan.setAttribute('class', 'vignette-label');
+                titleSpan.textContent = label;
+                svgElement.appendChild(titleSpan);
+
+                const textSpan = document.createElementNS(SVG_NS, 'tspan');
+                textSpan.textContent = ` ${text}`;
+                svgElement.appendChild(textSpan);
+
+                const link = deviceIFUs[value];
+                if (link) {
+                    textSpan.setAttribute('style', 'fill:blue; text-decoration:underline; cursor:pointer;');
+                    textSpan.addEventListener('click', () => window.open(link, '_blank'));
+                    ifusButton.style.display = 'block';
+                    ifusButton.onclick = () => window.open(link, '_blank');
+                } else {
+                    textSpan.removeAttribute('style');
+                    ifusButton.style.display = 'none';
+                }
+            } else {
+                ifusButton.style.display = 'none';
+            }
+        };
+
+        const isRamificadoDerecho = document.getElementById('ramificado_derecho_switch').checked;
+        const isRamificadoIzquierdo = document.getElementById('ramificado_izquierdo_switch').checked;
+
+        let currentY = 20;
+
+        if (isRamificadoDerecho) {
+            const deviceTypeDerSvg = document.getElementById('device-type-der-svg');
+            deviceTypeDerSvg.setAttribute('y', currentY);
+            updateIbdDeviceLink('device_type_der', 'device-type-der-svg', 'IBD D°', 'ifus_button_der');
+            currentY += 4;
+
+            const ramificadoIliacoD = document.getElementById('ramificado_iliaco_d').value;
+            const ramificadoIliacoDFr = document.getElementById('ramificado_iliaco_d_fr').value;
+            const ramificadoIliacoDSvg = document.getElementById('ramificado-iliaco-d-svg');
+            ramificadoIliacoDSvg.setAttribute('y', currentY);
+            ramificadoIliacoDSvg.innerHTML = '';
+            const ramificadoIliacoDTitle = document.createElementNS(SVG_NS, 'tspan');
+            ramificadoIliacoDTitle.setAttribute('class', 'vignette-label');
+            ramificadoIliacoDTitle.textContent = 'IBD D°: ';
+            ramificadoIliacoDSvg.appendChild(ramificadoIliacoDTitle);
+            const ramificadoIliacoDText = document.createElementNS(SVG_NS, 'tspan');
+            ramificadoIliacoDText.textContent = `${ramificadoIliacoD}` + (ramificadoIliacoDFr ? ` (${ramificadoIliacoDFr}Fr)` : '');
+            ramificadoIliacoDSvg.appendChild(ramificadoIliacoDText);
+            currentY += 4;
+
+            const componenteHipogastricoD = document.getElementById('componente_hipogastrico_d').value;
+            const componenteHipogastricoDFr = document.getElementById('componente_hipogastrico_d_fr').value;
+            const componenteHipogastricoDSvg = document.getElementById('componente-hipogastrico-d-svg');
+            componenteHipogastricoDSvg.setAttribute('y', currentY);
+            componenteHipogastricoDSvg.innerHTML = '';
+            const componenteHipogastricoDTitle = document.createElementNS(SVG_NS, 'tspan');
+            componenteHipogastricoDTitle.setAttribute('class', 'vignette-label');
+            componenteHipogastricoDTitle.textContent = 'Comp. Hipo D°: ';
+            componenteHipogastricoDSvg.appendChild(componenteHipogastricoDTitle);
+            const componenteHipogastricoDText = document.createElementNS(SVG_NS, 'tspan');
+            componenteHipogastricoDText.textContent = `${componenteHipogastricoD}` + (componenteHipogastricoDFr ? ` (${componenteHipogastricoDFr}Fr)` : '');
+            componenteHipogastricoDSvg.appendChild(componenteHipogastricoDText);
+            currentY += 4;
+        } else {
+            document.getElementById('device-type-der-svg').innerHTML = '';
+            document.getElementById('ramificado-iliaco-d-svg').innerHTML = '';
+            document.getElementById('componente-hipogastrico-d-svg').innerHTML = '';
+        }
+
+        if (isRamificadoIzquierdo) {
+            const deviceTypeIzqSvg = document.getElementById('device-type-izq-svg');
+            deviceTypeIzqSvg.setAttribute('y', currentY);
+            updateIbdDeviceLink('device_type_izq', 'device-type-izq-svg', 'IBD I°', 'ifus_button_izq');
+            currentY += 4;
+
+            const ramificadoIliacoI = document.getElementById('ramificado_iliaco_i').value;
+            const ramificadoIliacoIFr = document.getElementById('ramificado_iliaco_i_fr').value;
+            const ramificadoIliacoISvg = document.getElementById('ramificado-iliaco-i-svg');
+            ramificadoIliacoISvg.setAttribute('y', currentY);
+            ramificadoIliacoISvg.innerHTML = '';
+            const ramificadoIliacoITitle = document.createElementNS(SVG_NS, 'tspan');
+            ramificadoIliacoITitle.setAttribute('class', 'vignette-label');
+            ramificadoIliacoITitle.textContent = 'IBD I°: ';
+            ramificadoIliacoISvg.appendChild(ramificadoIliacoITitle);
+            const ramificadoIliacoIText = document.createElementNS(SVG_NS, 'tspan');
+            ramificadoIliacoIText.textContent = `${ramificadoIliacoI}` + (ramificadoIliacoIFr ? ` (${ramificadoIliacoIFr}Fr)` : '');
+            ramificadoIliacoISvg.appendChild(ramificadoIliacoIText);
+            currentY += 4;
+
+            const componenteHipogastricoI = document.getElementById('componente_hipogastrico_i').value;
+            const componenteHipogastricoIFr = document.getElementById('componente_hipogastrico_i_fr').value;
+            const componenteHipogastricoISvg = document.getElementById('componente-hipogastrico-i-svg');
+            componenteHipogastricoISvg.setAttribute('y', currentY);
+            componenteHipogastricoISvg.innerHTML = '';
+            const componenteHipogastricoITitle = document.createElementNS(SVG_NS, 'tspan');
+            componenteHipogastricoITitle.setAttribute('class', 'vignette-label');
+            componenteHipogastricoITitle.textContent = 'Comp. Hipo I°: ';
+            componenteHipogastricoISvg.appendChild(componenteHipogastricoITitle);
+            const componenteHipogastricoIText = document.createElementNS(SVG_NS, 'tspan');
+            componenteHipogastricoIText.textContent = `${componenteHipogastricoI}` + (componenteHipogastricoIFr ? ` (${componenteHipogastricoIFr}Fr)` : '');
+            componenteHipogastricoISvg.appendChild(componenteHipogastricoIText);
+            currentY += 4;
+        } else {
+            document.getElementById('device-type-izq-svg').innerHTML = '';
+            document.getElementById('ramificado-iliaco-i-svg').innerHTML = '';
+            document.getElementById('componente-hipogastrico-i-svg').innerHTML = '';
+        }
+
+        updateVignetteLayout();
+    }
+
+    document.getElementById('device_type').addEventListener('change', updateEndoprotesisDisplay);
+    document.getElementById('device_body').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('device_body_fr').addEventListener('input', updateEndoprotesisDisplay);
+    document.querySelectorAll('input[name="ipsi_side"]').forEach(radio => radio.addEventListener('change', updateEndoprotesisDisplay));
+    document.getElementById('ipsi_branch').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('ipsi_branch_fr').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('contra_branch').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('contra_branch_fr').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('device_type_der').addEventListener('change', updateEndoprotesisDisplay);
+    document.getElementById('ramificado_iliaco_d').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('ramificado_iliaco_d_fr').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('componente_hipogastrico_d').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('componente_hipogastrico_d_fr').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('device_type_izq').addEventListener('change', updateEndoprotesisDisplay);
+    document.getElementById('ramificado_iliaco_i').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('ramificado_iliaco_i_fr').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('componente_hipogastrico_i').addEventListener('input', updateEndoprotesisDisplay);
+    document.getElementById('componente_hipogastrico_i_fr').addEventListener('input', updateEndoprotesisDisplay);
+
+    document.getElementById('device_observations').addEventListener('input', updateObservacionesDisplay);
+
+    let manualStents = [];
+    let manualDrawings = [];
+    let eraserPaths = [];
+    let currentMode = { type: 'none', stent: null }; // type: 'none', 'draw', 'erase'
+    let isDrawingOrErasing = false;
+    let currentPath = null;
+    let currentPathData = {};
+
+    // Global mouse handlers
+    function handleMouseMove(e) {
+        if (isDrawingOrErasing) {
+            const { x, y } = getMouseModelCoords(e);
+            currentPathData.d += ` L ${x} ${y}`;
+            currentPath.setAttribute('d', currentPathData.d);
+        }
+    }
+
+    function handleMouseUp() {
+        if (isDrawingOrErasing) {
+            if (currentMode.type === 'draw') {
+                manualDrawings.push(currentPathData);
+            } else { // Erase mode
+                eraserPaths.push(currentPathData);
+            }
+            isDrawingOrErasing = false;
+            currentPath = null;
+            currentPathData = {};
+        }
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    const addStentBtn = document.getElementById('add-stent-btn');
+    const stentControlsContainer = document.getElementById('stent-controls-container');
+
+    function redrawManualCanvas() {
+        let manualDrawingsGroup = document.getElementById('manual-drawings-group');
+        if (!manualDrawingsGroup) {
+            manualDrawingsGroup = document.createElementNS(SVG_NS, 'g');
+            manualDrawingsGroup.id = 'manual-drawings-group';
+            manualDrawingsGroup.setAttribute('mask', 'url(#eraser-mask)');
+            document.getElementById('diagrama_svg').appendChild(manualDrawingsGroup);
+        } else {
+            manualDrawingsGroup.innerHTML = '';
+        }
+
+        manualDrawings.forEach(pathData => {
+            const path = document.createElementNS(SVG_NS, 'path');
+            path.setAttribute('d', pathData.d);
+            path.setAttribute('stroke', pathData.color || '#c82828');
+            path.setAttribute('stroke-width', pathData.size);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('data-stent-id', pathData.stentId);
+            path.setAttribute('opacity', pathData.opacity);
+            manualDrawingsGroup.appendChild(path);
+        });
+
+        const eraserPathsGroup = document.getElementById('eraser-paths-group');
+        eraserPathsGroup.innerHTML = '';
+        eraserPaths.forEach(pathData => {
+            const path = document.createElementNS(SVG_NS, 'path');
+            path.setAttribute('d', pathData.d);
+            path.setAttribute('stroke', 'black');
+            path.setAttribute('stroke-width', pathData.size);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            eraserPathsGroup.appendChild(path);
+        });
+    }
+
+    function generateCircleCursor(size) {
+        const svgSize = size + 2;
+        const radius = size / 2;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}"><circle cx="${svgSize / 2}" cy="${svgSize / 2}" r="${radius}" fill="white" stroke="black" stroke-width="1"/></svg>`;
+        return `url('data:image/svg+xml;utf8,${encodeURIComponent(svg)}') ${svgSize / 2} ${svgSize / 2}, auto`;
+    }
+
+    function addStentControl(stent) {
+        if (!stent) {
+            const newStent = {
+                id: `stent-${manualStents.length}`,
+                size: 2,
+                transparency: 0,
+                color: '#c82828'
+            };
+            manualStents.push(newStent);
+            stent = newStent;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'stent-control-row';
+        row.dataset.stentId = stent.id;
+
+        row.innerHTML = `
+            <div class="stent-preview-container">
+                <div class="stent-preview" style="width: ${stent.size + 10}px; height: ${stent.size + 10}px; opacity: ${(100 - stent.transparency) / 100}; background-color: ${stent.color || '#c82828'};"></div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background-color: #c82828;" data-color="#c82828"></div>
+                    <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
+                    <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
+                    <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
+                    <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div>
+                    <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
+                    <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
+                    <div class="color-swatch" style="background-color: #000000;" data-color="#000000"></div>
+                </div>
+            </div>
+            <div class="input-stepper">
+                <button class="stepper-btn minus">-</button>
+                <input type="number" class="stent-size-input" value="${stent.size}" step="1">
+                <button class="stepper-btn plus">+</button>
+            </div>
+            <button class="draw-stent-btn">Dibujar</button>
+            <button class="erase-stent-btn">Borrar</button>
+            <div class="transparency-control">
+                <label>Transparencia</label>
+                <input type="range" class="transparency-slider" min="0" max="100" value="${stent.transparency}">
+            </div>
+            <button class="delete-drawing-btn">🗑️</button>
+        `;
+
+        stentControlsContainer.appendChild(row);
+
+        const sizeInput = row.querySelector('.stent-size-input');
+        const preview = row.querySelector('.stent-preview');
+        const palette = row.querySelector('.color-palette');
+
+        preview.addEventListener('click', () => {
+            palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!preview.parentElement.contains(e.target)) {
+                palette.style.display = 'none';
+            }
+        });
+
+        palette.addEventListener('click', (e) => {
+            if (e.target.classList.contains('color-swatch')) {
+                stent.color = e.target.dataset.color;
+                preview.style.backgroundColor = stent.color;
+                palette.style.display = 'none';
+                
+                manualDrawings.forEach(p => {
+                    if (p.stentId === stent.id) p.color = stent.color;
+                });
+                redrawManualCanvas();
+            }
+        });
+
+
+        row.querySelector('.minus').addEventListener('click', () => {
+            stent.size = Math.max(1, stent.size - 1);
+            sizeInput.value = stent.size;
+            preview.style.width = `${stent.size + 10}px`;
+            preview.style.height = `${stent.size + 10}px`;
+            if (currentMode.type === 'erase' && currentMode.stent.id === stent.id) {
+                document.getElementById('area-diagrama').style.cursor = generateCircleCursor(stent.size);
+            }
+        });
+
+        row.querySelector('.plus').addEventListener('click', () => {
+            stent.size = stent.size + 1;
+            sizeInput.value = stent.size;
+            preview.style.width = `${stent.size + 10}px`;
+            preview.style.height = `${stent.size + 10}px`;
+            if (currentMode.type === 'erase' && currentMode.stent.id === stent.id) {
+                document.getElementById('area-diagrama').style.cursor = generateCircleCursor(stent.size);
+            }
+        });
+
+        row.querySelector('.delete-drawing-btn').addEventListener('click', () => {
+            manualDrawings = manualDrawings.filter(p => p.stentId !== stent.id);
+            // We could also remove eraser paths associated with this, but for now we leave them
+            if (currentMode.stent && currentMode.stent.id === stent.id) {
+                currentMode = { type: 'none', stent: null };
+                document.getElementById('area-diagrama').className = ' ';
+                document.getElementById('area-diagrama').style.cursor = '';
+            }
+            manualStents = manualStents.filter(s => s.id !== stent.id);
+            row.remove();
+            redrawManualCanvas();
+        });
+
+        const drawBtn = row.querySelector('.draw-stent-btn');
+        drawBtn.addEventListener('click', () => {
+            const isActive = drawBtn.classList.contains('active');
+            document.querySelectorAll('.draw-stent-btn.active, .erase-stent-btn.active').forEach(b => b.classList.remove('active'));
+            
+            if (isActive) {
+                currentMode = { type: 'none', stent: null };
+                document.getElementById('area-diagrama').className = ' ';
+                document.getElementById('area-diagrama').style.cursor = '';
+            } else {
+                currentMode = { type: 'draw', stent: stent };
+                drawBtn.classList.add('active');
+                document.getElementById('area-diagrama').className = 'drawing-mode';
+                document.getElementById('area-diagrama').style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0 V24 M0 12 H24" stroke="black" stroke-width="1"/></svg>\') 12 12, auto';
+            }
+        });
+
+        const eraseBtn = row.querySelector('.erase-stent-btn');
+        eraseBtn.addEventListener('click', () => {
+            const isActive = eraseBtn.classList.contains('active');
+            document.querySelectorAll('.draw-stent-btn.active, .erase-stent-btn.active').forEach(b => b.classList.remove('active'));
+
+            if (isActive) {
+                currentMode = { type: 'none', stent: null };
+                document.getElementById('area-diagrama').className = ' ';
+                document.getElementById('area-diagrama').style.cursor = '';
+            } else {
+                currentMode = { type: 'erase', stent: stent };
+                eraseBtn.classList.add('active');
+                document.getElementById('area-diagrama').className = 'erasing-mode';
+                document.getElementById('area-diagrama').style.cursor = generateCircleCursor(stent.size);
+            }
+        });
+
+        const transparencySlider = row.querySelector('.transparency-slider');
+        transparencySlider.addEventListener('input', (e) => {
+            stent.transparency = e.target.value;
+            const opacity = (100 - stent.transparency) / 100;
+            preview.style.opacity = opacity;
+            const paths = document.querySelectorAll(`#manual-drawings-group path[data-stent-id="${stent.id}"]`);
+            paths.forEach(path => path.setAttribute('opacity', opacity));
+            manualDrawings.forEach(p => {
+                if (p.stentId === stent.id) p.opacity = opacity;
+            });
+        });
+    }
+
+    addStentBtn.addEventListener('click', () => {
+        addStentControl();
+    });
+
+    function getMouseModelCoords(e) {
+        const svg = document.getElementById('diagrama_svg');
+        const svgRect = svg.getBoundingClientRect();
+
+        // Calculate mouse position relative to the SVG element
+        const svgX = e.clientX - svgRect.left;
+        const svgY = e.clientY - svgRect.top;
+
+        // Now, we need to scale these coordinates based on the viewBox
+        const viewBox = svg.viewBox.baseVal;
+        const scaleX = viewBox.width / svgRect.width;
+        const scaleY = viewBox.height / svgRect.height;
+
+        return {
+            x: svgX * scaleX,
+            y: svgY * scaleY
+        };
+    }
+
+    const svg = document.getElementById('diagrama_svg');
+
+    svg.addEventListener('mousedown', (e) => {
+        if (currentMode.type === 'draw' || currentMode.type === 'erase') {
+            isDrawingOrErasing = true;
+            const { x, y } = getMouseModelCoords(e);
+            
+            currentPathData = {
+                d: `M ${x} ${y}`,
+                size: currentMode.stent.size,
+            };
+
+            currentPath = document.createElementNS(SVG_NS, 'path');
+            currentPath.setAttribute('stroke-width', currentPathData.size);
+            currentPath.setAttribute('fill', 'none');
+            currentPath.setAttribute('stroke-linecap', 'round');
+            currentPath.setAttribute('stroke-linejoin', 'round');
+            currentPath.setAttribute('d', currentPathData.d);
+
+            if (currentMode.type === 'draw') {
+                currentPathData.stentId = currentMode.stent.id;
+                currentPathData.opacity = (100 - currentMode.stent.transparency) / 100;
+                currentPathData.color = currentMode.stent.color || '#c82828';
+                currentPath.setAttribute('stroke', currentPathData.color);
+                currentPath.setAttribute('data-stent-id', currentPathData.stentId);
+                currentPath.setAttribute('opacity', currentPathData.opacity);
+                document.getElementById('manual-drawings-group').appendChild(currentPath);
+            } else { // Erase mode
+                currentPath.setAttribute('stroke', 'black');
+                document.getElementById('eraser-paths-group').appendChild(currentPath);
+            }
+
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+
+            document.body.classList.add('no-select');
+        }
+    });
+
+    function updateZIndex() {
+        const svg = document.getElementById('diagrama_svg');
+        const zIndexOrder = [
+            'drawing-group', // Aorta vessel
+            'manual-drawings-group', // User drawings
+            'all-annotations-container', // All diagram annotations
+            'patient-data-display-group',
+            'proyeccion-display-group',
+            'endoprotesis-display-group',
+            'observaciones-display-group',
+            'extras-display-group',
+            'hipogastrica-derecha-display-group',
+            'hipogastrica-izquierda-display-group'
+        ];
+        zIndexOrder.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                svg.appendChild(el);
+            }
+        });
+    }
+
+    // Add redraw and z-index to main generation function
+    const original_generarDiagrama = generarDiagrama;
+    generarDiagrama = function() {
+        original_generarDiagrama.apply(this, arguments);
+        redrawManualCanvas();
+        updateZIndex();
+    }
+
+    updatePatientDataDisplay();
+    updateEndoprotesisDisplay();
+    updateExtrasVignette();
+    updateObservacionesDisplay();
+    generarDiagrama();
+
+    function getStyledSvgSource(width, height) {
+        const svgElement = document.getElementById('diagrama_svg').cloneNode(true);
+        
+        if (width && height) {
+            svgElement.setAttribute('width', width);
+            svgElement.setAttribute('height', height);
+        }
+
+        // Remove control points
+        const controlPoints = svgElement.querySelectorAll('circle[id^="control-point-"]');
+        controlPoints.forEach(point => point.remove());
+
+        const serializer = new XMLSerializer();
+        
+        const styles = `
+            .aorta-path { fill: #c82828; stroke: none; }
+            .annotation-line { stroke: #000000; stroke-width: 0.5; }
+            .annotation-text-bg { fill: #ffffff; stroke: #000000; stroke-width: 0.2; }
+            .annotation-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 5px; fill: #000000; text-anchor: middle; alignment-baseline: middle; }
+            .vignette-label { font-weight: bold; }
+            .extra-point-letter-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 4px; fill: #000000; text-anchor: end; alignment-baseline: middle; }
+        `;
+
+        const defs = svgElement.querySelector('defs');
+        const styleElement = document.createElementNS(SVG_NS, 'style');
+        styleElement.textContent = styles;
+        defs.appendChild(styleElement);
+
+        return serializer.serializeToString(svgElement);
+    }
+
+    document.getElementById('export-png').addEventListener('click', () => {
+        const svgWidth = 297;
+        const svgHeight = 210;
+        const targetWidth = 3508; // Equivalent to A4 at 300 DPI
+        const targetHeight = (svgHeight / svgWidth) * targetWidth;
+        
+        const source = getStyledSvgSource(targetWidth, targetHeight);
+        const img = new Image();
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const pngUrl = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = pngUrl;
+            const apellido = document.getElementById('patient_lastname').value.trim() || 'Apellido';
+            const nombre = document.getElementById('patient_name').value.trim() || 'Nombre';
+            a.download = `${apellido}_${nombre}_EVAR.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        img.src = url;
+    });
+
+    document.getElementById('export-pdf').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const A4_WIDTH_MM = 297;
+        const A4_HEIGHT_MM = 210;
+        const DPI = 300;
+        const targetWidth = (A4_WIDTH_MM / 25.4) * DPI;
+        const targetHeight = (A4_HEIGHT_MM / 25.4) * DPI;
+
+        const source = getStyledSvgSource(targetWidth, targetHeight);
+        const img = new Image();
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+
+            // Main device
+            const deviceSelect = document.getElementById('device_type');
+            const deviceValue = deviceSelect.value;
+            const ifuLink = deviceIFUs[deviceValue];
+            if (ifuLink) {
+                pdf.link(230, 6, 50, 5, { url: ifuLink });
+            }
+
+            // Branched device right
+            const deviceSelectDer = document.getElementById('device_type_der');
+            const deviceValueDer = deviceSelectDer.value;
+            const ifuLinkDer = deviceIFUs[deviceValueDer];
+            if (ifuLinkDer) {
+                pdf.link(230, 18, 50, 5, { url: ifuLinkDer });
+            }
+
+            // Branched device left
+            const deviceSelectIzq = document.getElementById('device_type_izq');
+            const deviceValueIzq = deviceSelectIzq.value;
+            const ifuLinkIzq = deviceIFUs[deviceValueIzq];
+            if (ifuLinkIzq) {
+                pdf.link(230, 30, 50, 5, { url: ifuLinkIzq });
+            }
+
+            const apellido = document.getElementById('patient_lastname').value.trim() || 'Apellido';
+            const nombre = document.getElementById('patient_name').value.trim() || 'Nombre';
+            pdf.save(`${apellido}_${nombre}_EVAR.pdf`);
+            URL.revokeObjectURL(url);
+        };
+
+        img.src = url;
+    });
+    } catch (e) {
+        console.error(e);
+    }
+};
+</script>
+<script>
+  // Vascular Planning — postMessage bridge
+  window.addEventListener('message', function(event) {
+    if (event.origin !== window.location.origin) return;
+    if (!event.data || event.data.type !== 'REQUEST_SAVE') return;
+
+    var measurements = {};
+    document.querySelectorAll('input[type="number"]').forEach(function(el) {
+      if (el.id) measurements[el.id] = parseFloat(el.value) || 0;
+    });
+
+    var patientRef = '';
+    var notesVal = '';
+    var nameEl = document.querySelector('#nombre-paciente, #paciente, [name="paciente"], [name="nombre"]');
+    if (nameEl) patientRef = nameEl.value || '';
+    var notesEl = document.querySelector('#observaciones, #notas, textarea');
+    if (notesEl) notesVal = notesEl.value || '';
+
+    var pdfBase64 = null;
+    try {
+      if (typeof generarPDF === 'function') { generarPDF(); }
+      if (typeof doc !== 'undefined' && doc && typeof doc.output === 'function') {
+        pdfBase64 = 'data:application/pdf;base64,' + doc.output('datauristring').split(',')[1];
+      }
+    } catch(e) {
+      console.warn('PDF capture failed, saving without PDF:', e);
+    }
+
+    window.parent.postMessage({
+      type: 'SAVE_CASE',
+      payload: {
+        patientRef: patientRef || 'Paciente',
+        notes: notesVal,
+        measurements: measurements,
+        pdfBase64: pdfBase64
+      }
+    }, window.location.origin);
+  });
+</script>
+</html>'''
