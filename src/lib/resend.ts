@@ -1,6 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 function escapeHtml(str: string): string {
   return str
@@ -23,7 +25,7 @@ export async function sendAdminNotification(data: {
   const specialty = escapeHtml(data.specialty)
   const institution = escapeHtml(data.institution)
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: 'Vascular Planning <noreply@vascularplanning.com>',
     to: process.env.ADMIN_EMAIL!,
     subject: `Nueva solicitud de acceso: ${userName}`,
@@ -49,7 +51,7 @@ export async function sendApprovalEmail(email: string, name: string) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://vascularplanning.vercel.app'
   const safeName = escapeHtml(name)
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: 'Vascular Planning <noreply@vascularplanning.com>',
     to: email,
     subject: 'Tu acceso a Vascular Planning fue aprobado',
