@@ -9,8 +9,9 @@ const supabaseAdmin = createClient(
 )
 
 export async function POST(req: NextRequest) {
+  const adminSecret = process.env.ADMIN_SECRET
   const secret = req.headers.get('x-admin-secret')
-  if (secret !== process.env.ADMIN_SECRET) {
+  if (!adminSecret || !secret || secret !== adminSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
