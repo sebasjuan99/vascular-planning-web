@@ -13,6 +13,19 @@ const config: Config = {
         'vp-muted':  '#94a3b8',
         'vp-border': '#e2e8f0',
         'vp-surface':'#f8fafc',
+        // Clinical redesign tokens
+        'clinical-blue': '#0058bc',
+        'clinical-container': '#0070eb',
+        'clinical-light': '#d8e2ff',
+        'clinical-dark': '#001a41',
+        'surface-dim': '#d9dadc',
+        'surface-container': '#eeeef0',
+        'surface-container-low': '#f3f3f5',
+        'surface-container-high': '#e8e8ea',
+        'surface-container-highest': '#e2e2e4',
+        'on-surface': '#1a1c1d',
+        'on-surface-variant': '#414755',
+        'outline-variant': '#c1c6d7',
         // shadcn CSS variable colors
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -52,6 +65,11 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        'apple': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        'apple-lg': '0 20px 40px rgba(0, 88, 188, 0.04)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.06)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

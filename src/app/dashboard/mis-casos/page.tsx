@@ -20,25 +20,27 @@ export default async function MisCasosPage() {
   const fevarCount = allCases.filter(c => c.type === 'fevar').length
 
   return (
-    <div className="p-6 max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-4xl">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl font-bold text-vp-dark">Mis Casos</h1>
-          <p className="text-xs text-vp-muted mt-1">{allCases.length} planificaciones guardadas</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Mis Casos</h1>
+          <p className="text-sm text-slate-500 mt-1">{allCases.length} planificaciones guardadas</p>
         </div>
         <Link href="/dashboard/planificar"
-          className="bg-vp-red text-white text-xs font-bold px-4 py-2 rounded-md hover:bg-vp-red/90 transition-colors">
+          className="clinical-gradient text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:shadow-lg transition-all">
           + Nueva planificación
         </Link>
       </div>
 
       <StatsRow total={allCases.length} evar={evarCount} fevar={fevarCount} />
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {allCases.length === 0 ? (
-          <div className="text-center py-12 text-vp-muted text-sm">
-            No tienes casos guardados aún.{' '}
-            <Link href="/dashboard/planificar" className="text-vp-red font-semibold hover:underline">
+          <div className="bg-white rounded-xl shadow-apple text-center py-16">
+            <p className="text-slate-400 text-sm mb-3">
+              No tienes casos guardados aún.
+            </p>
+            <Link href="/dashboard/planificar" className="text-[#0058bc] font-semibold text-sm hover:underline">
               Crear primera planificación
             </Link>
           </div>

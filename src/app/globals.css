@@ -8,6 +8,24 @@
   }
 }
 
+.glass-nav {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.clinical-gradient {
+  background: linear-gradient(135deg, #0058bc 0%, #0070eb 100%);
+}
+
+.clinical-gradient:hover {
+  opacity: 0.95;
+}
+
+.bento-card {
+  box-shadow: 0 20px 40px rgba(0, 88, 188, 0.04);
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
