@@ -21,8 +21,9 @@ export default function ServiciosHero() {
           <span className="text-blue-400">tus Casos</span>
         </h1>
         <p className="text-lg text-white/70 max-w-lg mb-10 leading-relaxed">
-          Nuestro equipo de especialistas realiza la planificación endovascular de tus pacientes con
-          precisión certificada y tecnología de vanguardia.
+          Asesoría completa basada en planificación quirúrgica guiada por expertos, con
+          acompañamiento tecnológico, diseño e impresión 3D, realidad mixta y recomendaciones
+          de especialistas.
         </p>
         <div className="flex gap-4 flex-wrap">
           <Link

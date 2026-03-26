@@ -1,21 +1,29 @@
 const steps = [
   {
     number: 1,
-    title: 'Enviar Caso',
-    description: 'Cargue las imágenes DICOM y datos clínicos del paciente en la plataforma.',
+    title: 'Contratar Consultoría',
+    description: 'El cliente contrata el servicio de consultoría quirúrgica integral.',
     filled: true,
   },
   {
     number: 2,
-    title: 'Revisión',
-    description: 'Nuestro equipo analiza el caso y genera la planificación endovascular completa.',
+    title: 'Subir Archivos DICOM',
+    description: 'El cliente sube los archivos DICOM del caso a la plataforma segura.',
     filled: false,
   },
   {
     number: 3,
-    title: 'Entrega',
-    description: 'Reciba el reporte con mediciones, estrategia y modelos 3D listos para uso clínico.',
+    title: 'Revisión del Caso',
+    description:
+      'Nuestro equipo revisa el caso, realiza la impresión 3D y crea el render VR.',
     filled: true,
+  },
+  {
+    number: 4,
+    title: 'Consultoría y Acompañamiento',
+    description:
+      'Se agenda la consultoría o acompañamiento quirúrgico con expertos.',
+    filled: false,
   },
 ]
 
@@ -28,13 +36,13 @@ export default function ServiciosHowItWorks() {
             Cómo Funciona
           </h2>
           <p className="text-gray-500 max-w-xl mx-auto">
-            Un proceso simple y eficiente para obtener planificaciones de alta calidad.
+            Un proceso integral para brindar consultoría quirúrgica de alta calidad.
           </p>
         </div>
 
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-12 md:gap-0">
           {/* Connecting line (desktop) */}
-          <div className="hidden md:block absolute top-8 left-[15%] right-[15%] h-px bg-vp-border" />
+          <div className="hidden md:block absolute top-8 left-[12%] right-[12%] h-px bg-vp-border" />
 
           {steps.map((step) => (
             <div key={step.number} className="relative flex-1 flex flex-col items-center text-center">

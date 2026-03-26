@@ -1,60 +1,110 @@
-import Image from 'next/image'
+'use client'
 
-const steps = [
+import { useState } from 'react'
+import { ChevronDown, ChevronUp, Building2 } from 'lucide-react'
+
+const brands = [
   {
-    title: 'Carga de DICOM',
-    description: 'Suba las imágenes tomográficas del paciente en formato DICOM para iniciar el análisis automatizado.',
-    image: '/images/process-dicom-upload.jpg',
+    name: 'Medtronic',
+    devices: [
+      'Endurant II/IIs Stent Graft System',
+      'Valiant Navion Thoracic Stent Graft',
+      'E-nside FEVAR Custom System',
+    ],
   },
   {
-    title: 'Análisis y Medición',
-    description: 'El sistema genera reconstrucciones 3D y realiza mediciones anatómicas clave de forma automática.',
-    image: '/images/process-analysis.jpg',
+    name: 'Gore',
+    devices: [
+      'GORE EXCLUDER AAA Endoprosthesis',
+      'GORE TAG Thoracic Endoprosthesis',
+      'GORE EXCLUDER Iliac Branch Endoprosthesis',
+    ],
   },
   {
-    title: 'Estrategia Sugerida',
-    description: 'Reciba un reporte con la estrategia endovascular recomendada, dispositivos sugeridos y simulaciones.',
-    image: '/images/process-strategy-report.jpg',
+    name: 'Cook Medical',
+    devices: [
+      'Zenith Alpha Abdominal AAA Endovascular Graft',
+      'Zenith TX2 TAA Endovascular Graft',
+      'Zenith t-Branch Multi-Branched Stent Graft',
+    ],
+  },
+  {
+    name: 'Terumo Aortic',
+    devices: [
+      'Anaconda AAA Stent Graft System',
+      'Relay Pro/NBS Thoracic Stent Graft',
+      'Fenestrated Anaconda Custom Device',
+    ],
   },
 ]
 
 export default function PlanningProcess() {
+  const [expandedBrand, setExpandedBrand] = useState<string | null>(null)
+
+  const toggleBrand = (name: string) => {
+    setExpandedBrand(expandedBrand === name ? null : name)
+  }
+
   return (
-    <section id="proceso" className="py-24 bg-gray-50">
+    <section className="py-24 bg-gray-50">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-vp-dark mb-4">
-            El Proceso de Planificación
+            Catálogo de Prótesis Comerciales
           </h2>
-          <p className="text-gray-500 max-w-xl mx-auto">
-            Tres pasos simples para obtener una planificación endovascular completa y precisa.
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            Fichas técnicas y brochures de los principales dispositivos endovasculares del mercado.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, index) => (
-            <div
-              key={step.title}
-              className="bg-white rounded-2xl overflow-hidden border border-vp-border shadow-sm hover:shadow-xl transition-shadow"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={step.image}
-                  alt={step.title}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-clinical-blue text-white text-sm font-bold flex items-center justify-center">
-                  {index + 1}
-                </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {brands.map((brand) => {
+            const isExpanded = expandedBrand === brand.name
+            return (
+              <div
+                key={brand.name}
+                className="bg-white rounded-2xl border border-vp-border shadow-sm overflow-hidden"
+              >
+                <button
+                  onClick={() => toggleBrand(brand.name)}
+                  className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-clinical-light flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-clinical-blue" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-vp-dark">
+                      {brand.name}
+                    </h3>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                {isExpanded && (
+                  <div className="px-6 pb-6 border-t border-vp-border">
+                    <ul className="mt-4 space-y-3">
+                      {brand.devices.map((device) => (
+                        <li
+                          key={device}
+                          className="text-sm text-gray-600 pl-4 border-l-2 border-clinical-blue/30 py-1"
+                        >
+                          {device}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-vp-dark mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{step.description}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
+
+        <p className="text-center text-sm text-gray-400 mt-10">
+          Contenido administrado por el equipo de Vascular Planning. Los documentos se actualizan periódicamente.
+        </p>
       </div>
     </section>
   )

@@ -3,7 +3,6 @@ import PlanningHero from '@/components/planificacion/planning-hero'
 import PlanningWhatIs from '@/components/planificacion/planning-what-is'
 import PlanningProcess from '@/components/planificacion/planning-process'
 import PlanningBenefits from '@/components/planificacion/planning-benefits'
-import CtaSection from '@/components/shared/cta-section'
 
 export default function PlanificacionPage() {
   return (
@@ -12,7 +11,6 @@ export default function PlanificacionPage() {
       <PlanningWhatIs />
       <PlanningProcess />
       <PlanningBenefits />
-      <CtaSection />
     </PublicLayout>
   )
 }

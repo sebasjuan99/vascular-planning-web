@@ -1,15 +1,29 @@
-import { ShieldCheck, Users } from 'lucide-react'
+import { Compass, Printer, Glasses, Users } from 'lucide-react'
 
 const features = [
   {
-    icon: ShieldCheck,
-    title: 'Precisión Certificada',
-    description: 'Cada planificación es revisada por especialistas con protocolos de calidad validados.',
+    icon: Compass,
+    title: 'Planificación Guiada por Expertos',
+    description:
+      'Estrategia quirúrgica personalizada con recomendaciones de abordaje, procedimiento y planificación.',
+  },
+  {
+    icon: Printer,
+    title: 'Impresión 3D del Caso Clínico',
+    description:
+      'Modelo físico impreso en 3D de la anatomía del paciente para estudio y planificación prequirúrgica.',
+  },
+  {
+    icon: Glasses,
+    title: 'Realidad Mixta para Cirugía',
+    description:
+      'Renderizado en realidad mixta para soporte en la planificación y durante el procedimiento quirúrgico.',
   },
   {
     icon: Users,
-    title: 'Colaboración Experta',
-    description: 'Trabajamos junto al cirujano tratante para personalizar cada estrategia quirúrgica.',
+    title: 'Acompañamiento en Procedimiento',
+    description:
+      'Presencia y asesoría experta durante la intervención quirúrgica para garantizar los mejores resultados.',
   },
 ]
 
@@ -21,16 +35,19 @@ export default function ServiciosDescription() {
           {/* Left: text */}
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-vp-dark mb-6 leading-tight">
-              Servicio de Planificación Profesional
+              Consultoría Quirúrgica Integral
             </h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              Ofrecemos un servicio integral de planificación endovascular donde nuestro equipo
-              especializado analiza las imágenes de sus pacientes y genera reportes detallados con
-              mediciones, reconstrucciones 3D y estrategias quirúrgicas.
+              Nuestro servicio es una asesoría completa basada en planificación quirúrgica
+              guiada por expertos. Proporcionamos acompañamiento tecnológico, diseño e
+              impresión 3D del caso clínico, renderizado en realidad mixta para soporte en
+              planificación y cirugía, y recomendaciones de especialistas sobre abordaje,
+              procedimiento y planificación.
             </p>
             <p className="text-gray-500 leading-relaxed">
-              Cada caso es tratado de forma individual, considerando la anatomía específica del paciente,
-              los dispositivos disponibles y las preferencias del cirujano tratante.
+              Cada caso es tratado de forma integral, combinando tecnología de vanguardia
+              con la experiencia clínica de nuestro equipo para ofrecer la mejor estrategia
+              quirúrgica posible.
             </p>
           </div>
 

@@ -41,7 +41,7 @@ export default function Footer() {
 
         {/* Right: Copyright */}
         <p className="text-[11px] text-slate-400">
-          &copy; 2024 Vascular Planning
+          &copy; 2026 Vascular Planning
         </p>
       </div>
     </footer>

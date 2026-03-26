@@ -7,15 +7,11 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
         {/* Left: Content */}
         <div>
-          <span className="inline-block px-3 py-1 bg-[#0058bc]/10 text-[#0058bc] rounded-full text-[10px] font-bold uppercase tracking-wider mb-6">
-            Framework 2.0
-          </span>
           <h1 className="text-[3.5rem] leading-[1.1] font-bold tracking-tight text-slate-900 mb-6">
-            Planificación Vascular con Precisión Digital.
+            PLANIFICA TU CIRUGÍA AORTICA
           </h1>
           <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
-            Herramientas avanzadas de simulación EVAR y FEVAR para cirujanos vasculares.
-            Planifique, visualice y optimice cada procedimiento con precisión milimétrica.
+            Herramientas avanzadas de simulación EVAR y FEVAR para cirujanos vasculares. Planifique, visualice y optimice cada procedimiento con precisión milimétrica.
           </p>
           <div className="flex flex-wrap gap-4">
             <Link
