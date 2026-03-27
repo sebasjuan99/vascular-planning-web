@@ -41,7 +41,12 @@
       "Bash(gh pr:*)",
       "Bash(npx vercel:*)",
       "mcp__Claude_Preview__preview_start",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(ls /c/Users/Sebastian/vascular-planning-web/public/*aorta* /c/Users/Sebastian/vascular-planning-web/public/*Aorta*)",
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Vascular Planning 3D.png\" \"public/images/vascular-planning-3d.png\")",
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Vascular PLanning VR.png\" \"public/images/vascular-planning-vr.png\")",
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/curso vascular planning.png\" \"public/images/curso-vascular-planning.png\")",
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/vascular planning aorta.mp4\" \"public/images/vascular-planning-aorta.mp4\")"
     ]
   }
 }

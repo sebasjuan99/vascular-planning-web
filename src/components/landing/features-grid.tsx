@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Microscope, Droplets, History } from 'lucide-react'
+import { Microscope, Glasses, History } from 'lucide-react'
 
 export default function FeaturesGrid() {
   return (
@@ -32,8 +32,8 @@ export default function FeaturesGrid() {
             </p>
             <div className="mt-auto rounded-2xl overflow-hidden bg-[#e2e2e4]">
               <Image
-                src="/images/bento-3d-heart.jpg"
-                alt="Reconstrucción 3D del corazón"
+                src="/images/vascular-planning-3d.png"
+                alt="Reconstrucción 3D vascular"
                 width={800}
                 height={400}
                 className="w-full h-56 object-cover"
@@ -45,17 +45,17 @@ export default function FeaturesGrid() {
           <div className="bg-white rounded-[2rem] p-10 shadow-apple flex flex-col">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                <Droplets className="w-5 h-5 text-blue-600" />
+                <Glasses className="w-5 h-5 text-blue-600" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Simulación de Flujo</h3>
+              <h3 className="text-lg font-bold text-slate-900">Realidad Virtual Quirúrgica</h3>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed mb-6">
-              Modelos hemodinámicos computacionales para predecir el comportamiento del flujo sanguíneo post-intervención.
+              Render 3D a escala para simulación en realidad virtual y aumentar precisión en la planeación y durante la cirugía.
             </p>
             <div className="mt-auto rounded-2xl overflow-hidden bg-[#e2e2e4]">
               <Image
-                src="/images/bento-flow-simulation.jpg"
-                alt="Simulación de flujo sanguíneo"
+                src="/images/vascular-planning-vr.png"
+                alt="Realidad virtual quirúrgica vascular"
                 width={400}
                 height={300}
                 className="w-full h-40 object-cover"
@@ -76,8 +76,8 @@ export default function FeaturesGrid() {
             </p>
             <div className="mt-auto rounded-2xl overflow-hidden bg-[#e2e2e4]">
               <Image
-                src="/images/bento-data-dashboard.jpg"
-                alt="Dashboard de datos clínicos"
+                src="/images/curso-vascular-planning.png"
+                alt="Curso vascular planning"
                 width={400}
                 height={300}
                 className="w-full h-40 object-cover"
