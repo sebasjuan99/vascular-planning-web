@@ -103,8 +103,8 @@ export default function FeaturesGrid() {
             </div>
             <div className="flex-1 rounded-2xl overflow-hidden bg-slate-800">
               <Image
-                src="/images/bento-surgical-monitor.jpg"
-                alt="Monitor quirúrgico integrado"
+                src="/images/vascular-planning-planeacion.png"
+                alt="Planificación quirúrgica vascular"
                 width={500}
                 height={300}
                 className="w-full h-48 object-cover"
