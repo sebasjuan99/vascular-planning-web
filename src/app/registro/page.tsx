@@ -121,6 +121,13 @@ export default function RegistroPage() {
             Tu acceso será aprobado por un administrador. Recibirás confirmación por correo.
           </p>
         </div>
+
+        <p className="text-center text-xs text-vp-muted mt-4">
+          ¿Ya tienes cuenta?{' '}
+          <Link href="/login" className="text-vp-red font-semibold hover:underline">
+            Iniciar sesión
+          </Link>
+        </p>
       </div>
     </div>
   )

@@ -3,32 +3,46 @@ import Link from 'next/link'
 
 export default function Hero() {
   return (
-    <section className="relative h-[560px] flex items-center justify-center overflow-hidden">
-      <Image
-        src="/cirugia-hero.png"
-        alt="Cirugía vascular"
-        fill
-        className="object-cover object-center"
-        priority
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-[rgba(8,12,24,0.7)] to-[rgba(8,12,24,0.82)]" />
-      <div className="relative z-10 text-center px-6 max-w-2xl">
-        <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight leading-tight mb-4"
-          style={{ textShadow: '0 2px 24px rgba(0,0,0,0.4)' }}>
-          Vascular Planning
-        </h1>
-        <p className="text-base text-white/70 max-w-md mx-auto mb-8 leading-relaxed">
-          Herramientas clínicas EVAR y FEVAR para planificación endovascular de alta complejidad.
-        </p>
-        <div className="flex gap-3 justify-center">
-          <Link href="/registro"
-            className="bg-vp-red text-white font-bold px-6 py-3 rounded-md hover:bg-vp-red/90 transition-colors text-sm">
-            Comenzar ahora
-          </Link>
-          <Link href="#features"
-            className="bg-white/10 border border-white/25 text-white font-medium px-5 py-3 rounded-md hover:bg-white/20 transition-colors text-sm">
-            Ver cómo funciona
-          </Link>
+    <section className="relative pt-32 pb-20 px-8 overflow-hidden">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        {/* Left: Content */}
+        <div>
+          <h1 className="text-[3.5rem] leading-[1.1] font-bold tracking-tight text-slate-900 mb-6">
+            PLANIFICA TU CIRUGÍA AORTICA
+          </h1>
+          <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-lg">
+            Herramientas avanzadas de simulación EVAR y FEVAR para cirujanos vasculares. Planifique, visualice y optimice cada procedimiento con precisión milimétrica.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/registro"
+              className="clinical-gradient text-white text-sm font-semibold px-8 py-3.5 rounded-full hover:shadow-lg transition-all"
+            >
+              Comenzar Planificación
+            </Link>
+            <Link
+              href="/login"
+              className="bg-slate-100 text-slate-700 text-sm font-semibold px-8 py-3.5 rounded-full hover:bg-slate-200 transition-colors"
+            >
+              Iniciar Sesión
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: Image */}
+        <div className="relative">
+          {/* Rotated blur background */}
+          <div className="absolute -inset-4 bg-gradient-to-br from-[#0058bc]/20 to-[#0058bc]/5 rounded-[2rem] rotate-3 blur-sm" />
+          <div className="relative rounded-3xl overflow-hidden shadow-apple">
+            <Image
+              src="/images/hero-home-vascular.jpg"
+              alt="Planificación vascular digital"
+              width={800}
+              height={600}
+              className="w-full aspect-[4/3] object-cover"
+              priority
+            />
+          </div>
         </div>
       </div>
     </section>

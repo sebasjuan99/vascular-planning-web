@@ -5,15 +5,15 @@ interface StatsRowProps {
 }
 export default function StatsRow({ total, evar, fevar }: StatsRowProps) {
   return (
-    <div className="grid grid-cols-3 gap-3 mb-6">
+    <div className="grid grid-cols-3 gap-4 mb-8">
       {[
-        { label: 'Total casos', value: total, color: 'text-vp-dark' },
-        { label: 'EVAR', value: evar, color: 'text-vp-red' },
-        { label: 'FEVAR', value: fevar, color: 'text-vp-blue' },
+        { label: 'Total casos', value: total, color: 'text-slate-900' },
+        { label: 'EVAR', value: evar, color: 'text-[#0058bc]' },
+        { label: 'FEVAR', value: fevar, color: 'text-blue-600' },
       ].map((s) => (
-        <div key={s.label} className="bg-white border border-vp-border rounded-lg p-4">
-          <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
-          <div className="text-xs text-vp-muted uppercase tracking-wide mt-0.5">{s.label}</div>
+        <div key={s.label} className="bg-white rounded-xl shadow-apple p-5">
+          <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+          <div className="text-xs text-slate-400 uppercase tracking-wide mt-1 font-medium">{s.label}</div>
         </div>
       ))}
     </div>

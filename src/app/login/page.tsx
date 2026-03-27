@@ -85,7 +85,7 @@ export default function LoginPage() {
         <p className="text-center text-xs text-vp-muted mt-4">
           ¿No tienes cuenta?{' '}
           <Link href="/registro" className="text-vp-red font-semibold hover:underline">
-            Solicitar acceso
+            Crear cuenta
           </Link>
         </p>
       </div>
