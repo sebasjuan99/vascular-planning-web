@@ -48,7 +48,9 @@
       "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/curso vascular planning.png\" \"public/images/curso-vascular-planning.png\")",
       "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/vascular planning aorta.mp4\" \"public/images/vascular-planning-aorta.mp4\")",
       "Bash(ls /c/Users/Sebastian/vascular-planning-web/public/*planeacion* /c/Users/Sebastian/vascular-planning-web/public/*Planeacion*)",
-      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*Logo*Vascular*)"
+      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*Logo*Vascular*)",
+      "Bash(ls /c/Users/Sebastian/vascular-planning-web/public/fabi* /c/Users/Sebastian/vascular-planning-web/public/Fabi*)",
+      "Bash(ls public/favicon* public/icon* public/apple*)"
     ]
   }
 }
