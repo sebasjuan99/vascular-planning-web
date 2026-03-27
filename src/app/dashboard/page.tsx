@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Activity, ArrowRight, ChevronRight, Clock, Wrench, BookOpen, GraduationCap } from 'lucide-react'
+import DashboardToolButtons from '@/components/dashboard/tool-buttons'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -42,28 +43,7 @@ export default async function DashboardPage() {
               </div>
               <h2 className="text-lg font-bold text-slate-900">Herramientas</h2>
             </div>
-            <div className="space-y-3">
-              <Link
-                href="/dashboard/planificar/evar"
-                className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#0058bc]/5 to-transparent border border-[#0058bc]/10 hover:border-[#0058bc]/30 transition-colors group"
-              >
-                <div>
-                  <p className="font-semibold text-sm text-slate-900">Aorta (EVAR)</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Reparación Endovascular</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#0058bc] transition-colors" />
-              </Link>
-              <Link
-                href="/dashboard/planificar/fevar"
-                className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent border border-blue-500/10 hover:border-blue-500/30 transition-colors group"
-              >
-                <div>
-                  <p className="font-semibold text-sm text-slate-900">Periférico (FEVAR)</p>
-                  <p className="text-xs text-slate-500 mt-0.5">EVAR Fenestrada</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
-              </Link>
-            </div>
+            <DashboardToolButtons />
           </div>
 
           {/* Stats Card */}

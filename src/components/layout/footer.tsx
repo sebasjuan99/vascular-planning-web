@@ -4,7 +4,7 @@ import Link from 'next/link'
 const footerLinks = [
   { label: 'Privacidad', href: '/privacidad' },
   { label: 'Términos', href: '/terminos' },
-  { label: 'Contacto', href: '/contacto' },
+  { label: 'Contacto', href: 'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=wCgnBPvgaEeCV5k43x4jJso4i2xa0TRLtdz2-zpMnxVUOU1PSDZNVkJDNUlDRUdMSjFHME1SOUJYQi4u' },
   { label: 'Soporte Técnico', href: '/soporte' },
 ]
 
@@ -33,6 +33,7 @@ export default function Footer() {
               key={link.href}
               href={link.href}
               className="text-slate-500 text-[11px] hover:text-slate-700 transition-colors"
+              {...(link.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             >
               {link.label}
             </Link>
