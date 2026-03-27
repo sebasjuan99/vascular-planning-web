@@ -33,7 +33,7 @@ export default function Navbar({ variant = 'public', userName }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Left: Logo */}
         <Link href={variant === 'dashboard' ? '/dashboard' : '/'} className="flex items-center gap-2 shrink-0">
-          <Image src="/logo.png" alt="Vascular Planning" width={360} height={96} className="h-24 w-auto object-contain" />
+          <Image src="/images/logo-vascular-planning.png" alt="Vascular Planning" width={432} height={115} className="h-28 w-auto object-contain" />
         </Link>
 
         {/* Center: Navigation links */}
