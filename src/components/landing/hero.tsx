@@ -29,20 +29,16 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right: Image */}
-        <div className="relative">
-          {/* Rotated blur background */}
-          <div className="absolute -inset-4 bg-gradient-to-br from-[#0058bc]/20 to-[#0058bc]/5 rounded-[2rem] rotate-3 blur-sm" />
-          <div className="relative rounded-3xl overflow-hidden shadow-apple">
-            <Image
-              src="/images/hero-home-vascular.jpg"
-              alt="Planificación vascular digital"
-              width={800}
-              height={600}
-              className="w-full aspect-[4/3] object-cover"
-              priority
-            />
-          </div>
+        {/* Right: Logo */}
+        <div className="relative flex items-center justify-center">
+          <Image
+            src="/images/logo-vascular-planning-hero.png"
+            alt="Vascular Planning Logo"
+            width={800}
+            height={600}
+            className="w-full max-w-md object-contain"
+            priority
+          />
         </div>
       </div>
     </section>

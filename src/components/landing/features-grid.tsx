@@ -107,7 +107,7 @@ export default function FeaturesGrid() {
                 alt="Planificación quirúrgica vascular"
                 width={500}
                 height={300}
-                className="w-full h-48 object-cover"
+                className="w-full h-48 object-contain"
               />
             </div>
           </div>

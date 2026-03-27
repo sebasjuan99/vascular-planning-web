@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { Menu, X, Search, Bell, User } from 'lucide-react'
+import { Menu, X, Search, Bell, User, LogOut, Home, ChevronDown } from 'lucide-react'
 
 interface NavbarProps {
   variant?: 'public' | 'dashboard'
@@ -25,6 +25,7 @@ const dashboardLinks = [
 
 export default function Navbar({ variant = 'public', userName }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const links = variant === 'dashboard' ? dashboardLinks : publicLinks
 
   return (
@@ -67,12 +68,40 @@ export default function Navbar({ variant = 'public', userName }: NavbarProps) {
               <button className="p-2 rounded-full hover:bg-surface-container-high transition-colors">
                 <Bell className="w-5 h-5 text-on-surface-variant" />
               </button>
-              <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface-container-high transition-colors">
-                <User className="w-5 h-5 text-on-surface-variant" />
-                {userName && (
-                  <span className="text-sm font-medium text-on-surface hidden sm:inline">{userName}</span>
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface-container-high transition-colors"
+                >
+                  <User className="w-5 h-5 text-on-surface-variant" />
+                  {userName && (
+                    <span className="text-sm font-medium text-on-surface hidden sm:inline">{userName}</span>
+                  )}
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
+                    <Link
+                      href="/"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Home className="w-4 h-4" />
+                      Ir al Inicio
+                    </Link>
+                    <div className="h-px bg-slate-100 my-1" />
+                    <form action="/api/auth/signout" method="POST">
+                      <button
+                        type="submit"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Cerrar Sesión
+                      </button>
+                    </form>
+                  </div>
                 )}
-              </button>
+              </div>
             </>
           ) : (
             <>
