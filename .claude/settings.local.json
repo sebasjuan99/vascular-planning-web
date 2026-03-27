@@ -62,7 +62,8 @@
       "Bash(FFMPEG=\"C:/Users/Sebastian/AppData/Roaming/npm/node_modules/ffmpeg-static/ffmpeg.exe\" \"$FFMPEG\" -i \"/c/Users/Sebastian/vascular-planning-web/public/Doctor Manuel Espindola, Cirujano Vascular.mp4\" -ss 0 -t 3 -vf \"scale=1280:-2\" -c:v libx264 -crf 28 -preset fast -an -movflags +faststart -y \"public/images/planning-hero-loop.mp4\")",
       "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*Jeison* \"/c/Users/Sebastian/vascular-planning-web/public/\"*jeison*)",
       "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Logo Vascular Planning.png\" \"public/images/logo-vascular-planning.png\")",
-      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Dr Jeison Y Dr Espindola.jpeg\" \"public/images/dr-jeison-y-dr-espindola.jpeg\")"
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Dr Jeison Y Dr Espindola.jpeg\" \"public/images/dr-jeison-y-dr-espindola.jpeg\")",
+      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*resultado* \"/c/Users/Sebastian/vascular-planning-web/public/\"*Resultado*)"
     ]
   }
 }
