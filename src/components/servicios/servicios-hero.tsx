@@ -1,16 +1,17 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 export default function ServiciosHero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-black">
-      <Image
-        src="/images/servicios-hero-bg.jpg"
-        alt="Servicios de planificación vascular"
-        fill
-        className="object-cover opacity-50"
-        priority
-      />
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
+      >
+        <source src="/images/planning-hero-loop.mp4" type="video/mp4" />
+      </video>
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
       <div className="relative z-10 max-w-6xl mx-auto px-6 py-32">
         <p className="text-sm uppercase tracking-[0.25em] text-white/60 mb-4 font-medium">

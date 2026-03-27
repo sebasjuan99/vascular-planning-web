@@ -15,11 +15,11 @@ export default function Footer() {
         {/* Left: Logo + tagline */}
         <div className="flex items-center gap-3">
           <Image
-            src="/logo.png"
+            src="/images/logo-vascular-planning.png"
             alt="Vascular Planning"
-            width={80}
-            height={24}
-            className="h-5 w-auto object-contain grayscale opacity-60"
+            width={432}
+            height={115}
+            className="h-28 w-auto object-contain opacity-80"
           />
           <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-slate-400">
             Precisión Clínica
