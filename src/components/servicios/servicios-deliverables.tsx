@@ -26,8 +26,8 @@ export default function ServiciosDeliverables() {
             </p>
             <div className="relative flex-1 min-h-[160px] rounded-xl overflow-hidden mt-auto">
               <Image
-                src="/images/process-strategy-report.jpg"
-                alt="Reporte de planificación quirúrgica"
+                src="/images/resultado-planning.png"
+                alt="Resultado de planificación quirúrgica"
                 fill
                 className="object-cover"
               />
