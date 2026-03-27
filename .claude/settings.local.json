@@ -50,7 +50,16 @@
       "Bash(ls /c/Users/Sebastian/vascular-planning-web/public/*planeacion* /c/Users/Sebastian/vascular-planning-web/public/*Planeacion*)",
       "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*Logo*Vascular*)",
       "Bash(ls /c/Users/Sebastian/vascular-planning-web/public/fabi* /c/Users/Sebastian/vascular-planning-web/public/Fabi*)",
-      "Bash(ls public/favicon* public/icon* public/apple*)"
+      "Bash(ls public/favicon* public/icon* public/apple*)",
+      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*Manuel* \"/c/Users/Sebastian/vascular-planning-web/public/\"*manuel* \"/c/Users/Sebastian/vascular-planning-web/public/\"*espindola* \"/c/Users/Sebastian/vascular-planning-web/public/\"*Espindola*)",
+      "Bash(ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,codec_name -of default=noprint_wrappers=1 \"/c/Users/Sebastian/vascular-planning-web/public/Doctor Manuel Espindola, Cirujano Vascular.mp4\")",
+      "Bash(where ffmpeg:*)",
+      "Bash(ls /c/ffmpeg*/bin/ffmpeg.exe)",
+      "Read(//c/Program Files/ffmpeg/bin/**)",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm root:*)",
+      "Bash(FFMPEG=\"C:/Users/Sebastian/AppData/Roaming/npm/node_modules/ffmpeg-static/ffmpeg.exe\" \"$FFMPEG\" -i \"/c/Users/Sebastian/vascular-planning-web/public/Doctor Manuel Espindola, Cirujano Vascular.mp4\" -ss 0 -t 3 -vf \"scale=1280:-2\" -c:v libx264 -crf 28 -preset fast -an -movflags +faststart -y \"public/images/planning-hero-loop.mp4\")"
     ]
   }
 }
