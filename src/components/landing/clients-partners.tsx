@@ -1,10 +1,10 @@
 import Image from "next/image";
 
 const partners = [
-  { name: "Aurora Pixel Studio", logo: "/logos-clientes/Logo Aurora Pixel Studio (1).png" },
-  { name: "Revive", logo: "/logos-clientes/Revive cuadrado.png" },
-  { name: "Terumo", logo: "/logos-clientes/Terumo.svg.png" },
-  { name: "Abbott", logo: "/logos-clientes/abbott.png" },
+  { name: "Aurora Pixel Studio", logo: "/logos-clientes/Logo Aurora Pixel Studio (1).png", size: "h-20 md:h-24" },
+  { name: "Revive", logo: "/logos-clientes/Revive cuadrado.png", size: "h-20 md:h-24" },
+  { name: "Terumo", logo: "/logos-clientes/Terumo.svg.png", size: "h-12 md:h-16" },
+  { name: "Abbott", logo: "/logos-clientes/abbott.png", size: "h-12 md:h-16" },
 ];
 
 export default function ClientsPartners() {
@@ -28,9 +28,9 @@ export default function ClientsPartners() {
               <Image
                 src={partner.logo}
                 alt={partner.name}
-                width={160}
-                height={80}
-                className="object-contain h-16 md:h-20 w-auto opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                width={200}
+                height={100}
+                className={`object-contain ${partner.size} w-auto opacity-80 group-hover:opacity-100 transition-opacity duration-300`}
               />
             </div>
           ))}
