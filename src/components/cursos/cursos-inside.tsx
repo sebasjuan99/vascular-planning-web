@@ -1,11 +1,9 @@
-import Image from 'next/image'
 import {
   BookOpen,
   Box,
   Glasses,
   Award,
   FolderOpen,
-  Play,
 } from 'lucide-react'
 
 const includes = [
@@ -61,21 +59,16 @@ export default function CursosInside() {
           </div>
 
           {/* Right: video preview */}
-          <div className="relative aspect-video rounded-2xl overflow-hidden group">
-            <Image
-              src="/images/cursos-video-preview.jpg"
-              alt="Vista previa del curso"
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Play className="w-7 h-7 text-clinical-blue ml-1" />
-              </div>
-            </div>
-            <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-lg">
-              Tráiler del Curso
-            </div>
+          <div className="relative aspect-video rounded-2xl overflow-hidden">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src="/videos/curso-ultrasonido.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </div>
