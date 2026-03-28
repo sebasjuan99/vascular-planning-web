@@ -9,6 +9,7 @@ interface Course {
   description: string
   category: 'Aorta' | 'Periférico'
   image?: string
+  video?: string
   gradient: string
 }
 
@@ -18,7 +19,7 @@ const aortaCourses: Course[] = [
     description:
       'Reparación Endovascular de Aneurisma Aórtico. Planificación y simulación del abordaje endovascular estándar.',
     category: 'Aorta',
-    image: '/images/curso-evar.jpg',
+    image: '/images/curso-evar.webp',
     gradient: 'from-blue-600 to-blue-800',
   },
   {
@@ -26,7 +27,7 @@ const aortaCourses: Course[] = [
     description:
       'Reparación Endovascular Fenestrada. Técnicas avanzadas para anatomías complejas con dispositivos fenestrados y ramificados.',
     category: 'Aorta',
-    image: '/images/curso-fevar.jpg',
+    image: '/images/curso-fevar.webp',
     gradient: 'from-purple-600 to-purple-800',
   },
   {
@@ -34,6 +35,7 @@ const aortaCourses: Course[] = [
     description:
       'Reparación Endovascular Torácica. Abordaje endovascular de patología aórtica torácica con planificación avanzada.',
     category: 'Aorta',
+    image: '/images/curso-tevar.webp',
     gradient: 'from-indigo-600 to-indigo-800',
   },
 ]
@@ -52,6 +54,7 @@ const perifericoCourses: Course[] = [
     description:
       'Entrenamiento en realidad virtual para el uso de ultrasonido doppler en evaluación y diagnóstico vascular.',
     category: 'Periférico',
+    video: '/videos/curso-ultrasonido.mp4',
     gradient: 'from-teal-600 to-teal-800',
   },
   {
@@ -59,6 +62,7 @@ const perifericoCourses: Course[] = [
     description:
       'Simulación en realidad virtual de accesos vasculares guiados por ecografía para procedimientos seguros.',
     category: 'Periférico',
+    video: '/videos/curso-accesos.mp4',
     gradient: 'from-emerald-600 to-emerald-800',
   },
 ]
@@ -66,9 +70,19 @@ const perifericoCourses: Course[] = [
 function CourseCard({ course }: { course: Course }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-vp-border overflow-hidden flex flex-col">
-      {/* Image or Gradient */}
+      {/* Image, Video or Gradient */}
       <div className="relative h-48 overflow-hidden">
-        {course.image ? (
+        {course.video ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={course.video} type="video/mp4" />
+          </video>
+        ) : course.image ? (
           <Image
             src={course.image}
             alt={course.title}
@@ -87,7 +101,7 @@ function CourseCard({ course }: { course: Course }) {
         <span
           className={`absolute top-4 left-4 ${
             course.category === 'Aorta' ? 'bg-blue-600' : 'bg-green-600'
-          } text-white text-xs font-semibold px-3 py-1 rounded-full`}
+          } text-white text-xs font-semibold px-3 py-1 rounded-full z-10`}
         >
           {course.category}
         </span>
