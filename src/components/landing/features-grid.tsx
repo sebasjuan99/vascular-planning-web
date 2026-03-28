@@ -101,13 +101,12 @@ export default function FeaturesGrid() {
                 <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
-            <div className="flex-1 rounded-2xl overflow-hidden bg-slate-800">
+            <div className="flex-1 relative rounded-2xl overflow-hidden bg-slate-800 min-h-[200px]">
               <Image
                 src="/images/cirugia-vascular-evar.jpeg"
                 alt="Cirugía Vascular EVAR Dr Espíndola"
-                width={500}
-                height={300}
-                className="w-full h-48 object-cover"
+                fill
+                className="object-cover"
               />
             </div>
           </div>
