@@ -7,6 +7,7 @@ export interface Case {
   patient_ref: string
   notes: string | null
   pdf_url: string | null
+  measurements: Record<string, number> | null
   created_at: string
 }
 

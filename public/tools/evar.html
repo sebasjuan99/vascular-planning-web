@@ -3567,6 +3567,31 @@ window.onload = () => {
   // Vascular Planning — postMessage bridge
   window.addEventListener('message', function(event) {
     if (event.origin !== window.location.origin) return;
+
+    // Load existing case data into the simulator
+    if (event.data && event.data.type === 'LOAD_CASE') {
+      var payload = event.data.payload;
+      if (payload.measurements) {
+        Object.keys(payload.measurements).forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) {
+            el.value = payload.measurements[id];
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+      }
+      if (payload.patientRef) {
+        var nameEl = document.querySelector('#patient_name, #nombre-paciente, #paciente, [name="paciente"], [name="nombre"]');
+        if (nameEl) nameEl.value = payload.patientRef;
+      }
+      if (payload.notes) {
+        var notesEl = document.querySelector('#observaciones, #notas, textarea');
+        if (notesEl) notesEl.value = payload.notes;
+      }
+      return;
+    }
+
     if (!event.data || event.data.type !== 'REQUEST_SAVE') return;
 
     var measurements = {};

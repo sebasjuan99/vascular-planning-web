@@ -2,22 +2,44 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { SaveCaseMessage } from '@/lib/types'
+import type { SaveCaseMessage, Case } from '@/lib/types'
 
 interface SimulatorFrameProps {
   toolPath: '/tools/evar.html' | '/tools/fevar.html'
   caseType: 'evar' | 'fevar'
+  existingCase?: Case | null
 }
 
-export default function SimulatorFrame({ toolPath, caseType }: SimulatorFrameProps) {
+export default function SimulatorFrame({ toolPath, caseType, existingCase }: SimulatorFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [iframeReady, setIframeReady] = useState(false)
 
-  const handleSave = useCallback(async (event: MessageEvent) => {
+  // Send existing case data to iframe once it's loaded
+  useEffect(() => {
+    if (!iframeReady || !existingCase || !iframeRef.current?.contentWindow) return
+    iframeRef.current.contentWindow.postMessage({
+      type: 'LOAD_CASE',
+      payload: {
+        patientRef: existingCase.patient_ref,
+        notes: existingCase.notes || '',
+        measurements: existingCase.measurements || {},
+      }
+    }, window.location.origin)
+  }, [iframeReady, existingCase])
+
+  const handleMessage = useCallback(async (event: MessageEvent) => {
     if (event.origin !== window.location.origin) return
+
+    // Iframe signals it's ready to receive data
+    if (event.data?.type === 'SIMULATOR_READY') {
+      setIframeReady(true)
+      return
+    }
+
     const msg = event.data as SaveCaseMessage
     if (msg?.type !== 'SAVE_CASE') return
 
@@ -40,13 +62,25 @@ export default function SimulatorFrame({ toolPath, caseType }: SimulatorFramePro
         }
       }
 
-      await supabase.from('cases').insert({
-        user_id: user.id,
-        type: caseType,
-        patient_ref: msg.payload.patientRef || 'Paciente',
-        notes: msg.payload.notes || null,
-        pdf_url,
-      })
+      if (existingCase) {
+        // Update existing case
+        await supabase.from('cases').update({
+          patient_ref: msg.payload.patientRef || 'Paciente',
+          notes: msg.payload.notes || null,
+          measurements: msg.payload.measurements || null,
+          ...(pdf_url ? { pdf_url } : {}),
+        }).eq('id', existingCase.id)
+      } else {
+        // Insert new case
+        await supabase.from('cases').insert({
+          user_id: user.id,
+          type: caseType,
+          patient_ref: msg.payload.patientRef || 'Paciente',
+          notes: msg.payload.notes || null,
+          measurements: msg.payload.measurements || null,
+          pdf_url,
+        })
+      }
 
       setSaved(true)
       setTimeout(() => router.push('/dashboard/mis-casos'), 1500)
@@ -55,12 +89,12 @@ export default function SimulatorFrame({ toolPath, caseType }: SimulatorFramePro
     } finally {
       setSaving(false)
     }
-  }, [caseType, supabase, router])
+  }, [caseType, supabase, router, existingCase])
 
   useEffect(() => {
-    window.addEventListener('message', handleSave)
-    return () => window.removeEventListener('message', handleSave)
-  }, [handleSave])
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [handleMessage])
 
   function requestSave() {
     if (!iframeRef.current?.contentWindow) return
@@ -79,6 +113,7 @@ export default function SimulatorFrame({ toolPath, caseType }: SimulatorFramePro
         </button>
         <span className="text-white/50 text-xs uppercase tracking-widest">
           {caseType === 'evar' ? 'EVAR — Simulador' : 'FEVAR — Simulador Fenestrado'}
+          {existingCase && ' — Editando caso'}
         </span>
         <button
           onClick={requestSave}
@@ -87,7 +122,7 @@ export default function SimulatorFrame({ toolPath, caseType }: SimulatorFramePro
             ${saved ? 'bg-green-500 text-white' : 'bg-vp-red text-white hover:bg-vp-red/80'}
             disabled:opacity-60`}
         >
-          {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar caso'}
+          {saved ? '✓ Guardado' : saving ? 'Guardando...' : existingCase ? 'Actualizar caso' : 'Guardar caso'}
         </button>
       </div>
 
@@ -97,6 +132,7 @@ export default function SimulatorFrame({ toolPath, caseType }: SimulatorFramePro
         className="flex-1 w-full border-none"
         sandbox="allow-scripts allow-same-origin allow-downloads"
         title={caseType === 'evar' ? 'Simulador EVAR' : 'Simulador FEVAR'}
+        onLoad={() => setIframeReady(true)}
       />
     </div>
   )
