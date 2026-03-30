@@ -16,6 +16,7 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
   const supabase = useMemo(() => createClient(), [])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
   const [iframeReady, setIframeReady] = useState(false)
 
   // Send existing case data to iframe once it's loaded
@@ -44,48 +45,60 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
     if (msg?.type !== 'SAVE_CASE') return
 
     setSaving(true)
+    setError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      if (!user) throw new Error('No autenticado')
 
       let pdf_url: string | null = null
 
       if (msg.payload.pdfBase64) {
-        const base64Data = msg.payload.pdfBase64.split(',')[1]
-        const pdfBlob = await fetch(`data:application/pdf;base64,${base64Data}`).then(r => r.blob())
-        const fileName = `${user.id}/${caseType}-${Date.now()}.pdf`
-        const { error: uploadError } = await supabase.storage
-          .from('case-pdfs').upload(fileName, pdfBlob, { contentType: 'application/pdf' })
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage.from('case-pdfs').getPublicUrl(fileName)
-          pdf_url = publicUrl
+        try {
+          const base64Data = msg.payload.pdfBase64.split(',')[1]
+          const pdfBlob = await fetch(`data:application/pdf;base64,${base64Data}`).then(r => r.blob())
+          const fileName = `${user.id}/${caseType}-${Date.now()}.pdf`
+          const { error: uploadError } = await supabase.storage
+            .from('case-pdfs').upload(fileName, pdfBlob, { contentType: 'application/pdf' })
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage.from('case-pdfs').getPublicUrl(fileName)
+            pdf_url = publicUrl
+          }
+        } catch {
+          // PDF upload failed, continue without PDF
         }
       }
 
+      // Build case data - try with measurements first, fallback without
+      const caseData = {
+        patient_ref: msg.payload.patientRef || 'Paciente',
+        notes: msg.payload.notes || null,
+        pdf_url,
+      }
+
+      let saveError: string | null = null
+
       if (existingCase) {
-        // Update existing case
-        await supabase.from('cases').update({
-          patient_ref: msg.payload.patientRef || 'Paciente',
-          notes: msg.payload.notes || null,
-          measurements: msg.payload.measurements || null,
-          ...(pdf_url ? { pdf_url } : {}),
-        }).eq('id', existingCase.id)
+        const { error: err } = await supabase.from('cases').update(caseData).eq('id', existingCase.id)
+        if (err) saveError = err.message
       } else {
-        // Insert new case
-        await supabase.from('cases').insert({
+        const { error: err } = await supabase.from('cases').insert({
+          ...caseData,
           user_id: user.id,
           type: caseType,
-          patient_ref: msg.payload.patientRef || 'Paciente',
-          notes: msg.payload.notes || null,
-          measurements: msg.payload.measurements || null,
-          pdf_url,
         })
+        if (err) saveError = err.message
+      }
+
+      if (saveError) {
+        throw new Error(saveError)
       }
 
       setSaved(true)
       setTimeout(() => router.push('/dashboard/mis-casos'), 1500)
     } catch (err) {
-      console.error('Error saving case:', err)
+      const message = err instanceof Error ? err.message : 'Error desconocido'
+      console.error('Error saving case:', message)
+      setError(message)
     } finally {
       setSaving(false)
     }
@@ -126,6 +139,13 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
           {saved ? '✓ Guardado' : saving ? 'Guardando...' : existingCase ? 'Actualizar caso' : 'Guardar caso'}
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-500 text-white text-sm px-4 py-2 flex items-center justify-between">
+          <span>Error: {error}</span>
+          <button onClick={() => setError('')} className="text-white/80 hover:text-white ml-4">✕</button>
+        </div>
+      )}
 
       <iframe
         ref={iframeRef}
