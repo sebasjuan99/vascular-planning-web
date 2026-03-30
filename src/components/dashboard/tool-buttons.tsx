@@ -1,33 +1,57 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChevronRight, X, Lock } from 'lucide-react'
 
-export default function DashboardToolButtons() {
+interface DashboardToolButtonsProps {
+  modules?: string[]
+}
+
+export default function DashboardToolButtons({ modules = [] }: DashboardToolButtonsProps) {
   const [showPopup, setShowPopup] = useState(false)
+  const router = useRouter()
+  const hasEvar = modules.includes('evar')
+  const hasFevar = modules.includes('fevar')
+
+  const handleClick = (tool: 'evar' | 'fevar', hasAccess: boolean) => {
+    if (hasAccess) {
+      router.push(`/dashboard/planificar/${tool}`)
+    } else {
+      setShowPopup(true)
+    }
+  }
 
   return (
     <>
       <div className="space-y-3">
         <button
-          onClick={() => setShowPopup(true)}
+          onClick={() => handleClick('evar', hasEvar)}
           className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#0058bc]/5 to-transparent border border-[#0058bc]/10 hover:border-[#0058bc]/30 transition-colors group text-left"
         >
           <div>
             <p className="font-semibold text-sm text-slate-900">Aorta (EVAR)</p>
             <p className="text-xs text-slate-500 mt-0.5">Reparación Endovascular</p>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#0058bc] transition-colors" />
+          {hasEvar ? (
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#0058bc] transition-colors" />
+          ) : (
+            <Lock className="w-4 h-4 text-slate-300" />
+          )}
         </button>
         <button
-          onClick={() => setShowPopup(true)}
+          onClick={() => handleClick('fevar', hasFevar)}
           className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-500/5 to-transparent border border-blue-500/10 hover:border-blue-500/30 transition-colors group text-left"
         >
           <div>
             <p className="font-semibold text-sm text-slate-900">Periférico (FEVAR)</p>
             <p className="text-xs text-slate-500 mt-0.5">EVAR Fenestrada</p>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+          {hasFevar ? (
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+          ) : (
+            <Lock className="w-4 h-4 text-slate-300" />
+          )}
         </button>
       </div>
 
@@ -44,13 +68,10 @@ export default function DashboardToolButtons() {
               <Lock className="w-8 h-8 text-[#0058bc]" />
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-3">
-              Próximo Lanzamiento
+              Acceso Restringido
             </h3>
-            <p className="text-slate-500 leading-relaxed mb-2">
-              Acceso Exclusivo
-            </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-8">
-              Esta herramienta estará disponible próximamente para usuarios verificados.
+              No tienes acceso a esta herramienta. Contacta a tu administrador para solicitar acceso.
             </p>
             <button
               onClick={() => setShowPopup(false)}

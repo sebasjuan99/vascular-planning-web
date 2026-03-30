@@ -43,7 +43,7 @@ export default async function DashboardPage() {
               </div>
               <h2 className="text-lg font-bold text-slate-900">Herramientas</h2>
             </div>
-            <DashboardToolButtons />
+            <DashboardToolButtons modules={[...(user.user_metadata?.modules || []), ...(user.user_metadata?.role === 'admin' ? ['evar', 'fevar'] : [])]} />
           </div>
 
           {/* Stats Card */}
