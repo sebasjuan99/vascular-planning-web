@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Case } from '@/lib/types'
 
 interface CaseCardProps {
@@ -22,9 +23,12 @@ export default function CaseCard({ caso }: CaseCardProps) {
         <p className="text-xs text-slate-400 mt-0.5">{date}</p>
       </div>
       <div className="flex gap-2 flex-shrink-0">
-        <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer">
-          Ver
-        </span>
+        <Link
+          href={`/dashboard/planificar/${caso.type}?caseId=${caso.id}`}
+          className="text-xs font-medium px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+        >
+          Abrir
+        </Link>
         {caso.pdf_url && (
           <a href={`/api/cases/pdf-url?id=${caso.id}`}
             className="text-xs font-medium px-3 py-1.5 rounded-full bg-[#0058bc] text-white hover:bg-[#0058bc]/90 transition-colors">
