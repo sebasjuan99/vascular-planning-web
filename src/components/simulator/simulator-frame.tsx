@@ -68,24 +68,44 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
         }
       }
 
-      // Build case data - try with measurements first, fallback without
-      const caseData = {
+      const caseData: Record<string, unknown> = {
         patient_ref: msg.payload.patientRef || 'Paciente',
         notes: msg.payload.notes || null,
         pdf_url,
       }
 
+      // Try saving with measurements, fallback without if column doesn't exist
+      if (msg.payload.measurements && Object.keys(msg.payload.measurements).length > 0) {
+        caseData.measurements = msg.payload.measurements
+      }
+
       let saveError: string | null = null
 
       if (existingCase) {
-        const { error: err } = await supabase.from('cases').update(caseData).eq('id', existingCase.id)
+        let { error: err } = await supabase.from('cases').update(caseData).eq('id', existingCase.id)
+        // Retry without measurements if column doesn't exist
+        if (err?.message?.includes('measurements')) {
+          delete caseData.measurements
+          const retry = await supabase.from('cases').update(caseData).eq('id', existingCase.id)
+          err = retry.error
+        }
         if (err) saveError = err.message
       } else {
-        const { error: err } = await supabase.from('cases').insert({
+        let { error: err } = await supabase.from('cases').insert({
           ...caseData,
           user_id: user.id,
           type: caseType,
         })
+        // Retry without measurements if column doesn't exist
+        if (err?.message?.includes('measurements')) {
+          delete caseData.measurements
+          const retry = await supabase.from('cases').insert({
+            ...caseData,
+            user_id: user.id,
+            type: caseType,
+          })
+          err = retry.error
+        }
         if (err) saveError = err.message
       }
 
