@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChevronRight, X, Lock } from 'lucide-react'
 
 interface ToolCardProps {
   type: 'evar' | 'fevar'
   href: string
+  hasAccess?: boolean
 }
 
 const config = {
@@ -31,9 +33,18 @@ const config = {
   }
 }
 
-export default function ToolCard({ type }: ToolCardProps) {
+export default function ToolCard({ type, href, hasAccess = false }: ToolCardProps) {
   const [showPopup, setShowPopup] = useState(false)
+  const router = useRouter()
   const c = config[type]
+
+  const handleClick = () => {
+    if (hasAccess) {
+      router.push(href)
+    } else {
+      setShowPopup(true)
+    }
+  }
 
   return (
     <>
@@ -49,11 +60,11 @@ export default function ToolCard({ type }: ToolCardProps) {
             <p className="text-sm text-slate-500 leading-relaxed">{c.description}</p>
           </div>
           <button
-            onClick={() => setShowPopup(true)}
-            className={`mt-auto ${c.btnClass} text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
+            onClick={handleClick}
+            className={`mt-auto ${hasAccess ? c.btnClass : 'bg-slate-400'} text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
           >
-            Iniciar {c.title}
-            <ChevronRight className="w-4 h-4" />
+            {hasAccess ? `Iniciar ${c.title}` : 'Sin Acceso'}
+            {hasAccess ? <ChevronRight className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
           </button>
         </div>
       </div>
@@ -71,13 +82,10 @@ export default function ToolCard({ type }: ToolCardProps) {
               <Lock className="w-8 h-8 text-[#0058bc]" />
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-3">
-              Próximo Lanzamiento
+              Acceso Restringido
             </h3>
-            <p className="text-slate-500 leading-relaxed mb-2">
-              Acceso Exclusivo
-            </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-8">
-              Esta herramienta estará disponible próximamente para usuarios verificados.
+              No tienes acceso a esta herramienta. Contacta a tu administrador para solicitar acceso.
             </p>
             <button
               onClick={() => setShowPopup(false)}

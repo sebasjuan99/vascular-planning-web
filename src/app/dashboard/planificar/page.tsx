@@ -1,7 +1,13 @@
+import { createClient } from '@/lib/supabase/server'
 import ToolCard from '@/components/dashboard/tool-card'
 import { Info } from 'lucide-react'
 
-export default function PlanificarPage() {
+export default async function PlanificarPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const modules: string[] = user?.user_metadata?.modules || []
+  const isAdmin = user?.user_metadata?.role === 'admin'
+
   return (
     <div className="max-w-4xl">
       <div className="mb-8">
@@ -10,8 +16,8 @@ export default function PlanificarPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <ToolCard type="evar" href="/dashboard/planificar/evar" />
-        <ToolCard type="fevar" href="/dashboard/planificar/fevar" />
+        <ToolCard type="evar" href="/dashboard/planificar/evar" hasAccess={isAdmin || modules.includes('evar')} />
+        <ToolCard type="fevar" href="/dashboard/planificar/fevar" hasAccess={isAdmin || modules.includes('fevar')} />
       </div>
 
       <div className="bg-white rounded-xl shadow-apple p-5 flex gap-3">
