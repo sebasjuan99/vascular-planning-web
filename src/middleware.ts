@@ -36,9 +36,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/pendiente', request.url))
   }
 
+  // Admin routes require admin role
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const isAdmin = user.user_metadata?.role === 'admin'
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/admin/:path*'],
 }

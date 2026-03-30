@@ -1,18 +1,10 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendApprovalEmail } from '@/lib/resend'
 
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  )
-}
-
 export async function POST(req: NextRequest) {
-  const supabaseAdmin = getSupabaseAdmin()
+  const supabaseAdmin = createAdminClient()
   const adminSecret = process.env.ADMIN_SECRET
   const secret = req.headers.get('x-admin-secret')
   if (!adminSecret || !secret || secret !== adminSecret) {
