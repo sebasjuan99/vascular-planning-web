@@ -105,7 +105,7 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white">
+    <div className="fixed inset-0 flex flex-col bg-white z-[60]">
       {/* Top bar */}
       <div className="h-12 bg-vp-dark flex items-center justify-between px-4 flex-shrink-0 z-50">
         <button onClick={() => router.back()}
