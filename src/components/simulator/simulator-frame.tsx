@@ -20,16 +20,23 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
   const [iframeReady, setIframeReady] = useState(false)
 
   // Send existing case data to iframe once it's loaded
+  // Retry a few times with delay to handle race condition with iframe JS initialization
   useEffect(() => {
     if (!iframeReady || !existingCase || !iframeRef.current?.contentWindow) return
-    iframeRef.current.contentWindow.postMessage({
+    const payload = {
       type: 'LOAD_CASE',
       payload: {
         patientRef: existingCase.patient_ref,
         notes: existingCase.notes || '',
         measurements: existingCase.measurements || {},
       }
-    }, window.location.origin)
+    }
+    // Send immediately and retry after delays to ensure iframe JS is ready
+    const send = () => iframeRef.current?.contentWindow?.postMessage(payload, window.location.origin)
+    send()
+    const t1 = setTimeout(send, 500)
+    const t2 = setTimeout(send, 1500)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [iframeReady, existingCase])
 
   const handleMessage = useCallback(async (event: MessageEvent) => {
