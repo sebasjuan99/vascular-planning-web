@@ -3571,19 +3571,20 @@ window.onload = () => {
     // Load existing case data into the simulator
     if (event.data && event.data.type === 'LOAD_CASE') {
       var payload = event.data.payload;
+      // Restore all form fields (text, number, date, select, radio)
       if (payload.measurements) {
         Object.keys(payload.measurements).forEach(function(id) {
           var el = document.getElementById(id);
           if (el) {
-            el.value = payload.measurements[id];
+            if (el.type === 'radio') {
+              el.checked = true;
+            } else {
+              el.value = payload.measurements[id];
+            }
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
           }
         });
-      }
-      if (payload.patientRef) {
-        var nameEl = document.querySelector('#patient_name, #nombre-paciente, #paciente, [name="paciente"], [name="nombre"]');
-        if (nameEl) nameEl.value = payload.patientRef;
       }
       if (payload.notes) {
         var notesEl = document.querySelector('#observaciones, #notas, textarea');
@@ -3594,15 +3595,22 @@ window.onload = () => {
 
     if (!event.data || event.data.type !== 'REQUEST_SAVE') return;
 
+    // Capture ALL form fields (number + text + date + select)
     var measurements = {};
-    document.querySelectorAll('input[type="number"]').forEach(function(el) {
-      if (el.id) measurements[el.id] = parseFloat(el.value) || 0;
+    document.querySelectorAll('input[type="number"], input[type="text"], input[type="date"], select').forEach(function(el) {
+      if (el.id) measurements[el.id] = el.value || '';
+    });
+    // Capture checked radio buttons
+    document.querySelectorAll('input[type="radio"]:checked').forEach(function(el) {
+      if (el.id) measurements[el.id] = el.value || '';
     });
 
-    var patientRef = '';
+    // Build patient reference from name + lastname
+    var nombre = (document.getElementById('patient_name') || {}).value || '';
+    var apellido = (document.getElementById('patient_lastname') || {}).value || '';
+    var patientRef = [nombre, apellido].filter(Boolean).join(' ') || 'Paciente';
+
     var notesVal = '';
-    var nameEl = document.querySelector('#patient_name, #nombre-paciente, #paciente, [name="paciente"], [name="nombre"]');
-    if (nameEl) patientRef = nameEl.value || '';
     var notesEl = document.querySelector('#observaciones, #notas, textarea');
     if (notesEl) notesVal = notesEl.value || '';
 
@@ -3619,7 +3627,7 @@ window.onload = () => {
     window.parent.postMessage({
       type: 'SAVE_CASE',
       payload: {
-        patientRef: patientRef || 'Paciente',
+        patientRef: patientRef,
         notes: notesVal,
         measurements: measurements,
         pdfBase64: pdfBase64
