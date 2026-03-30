@@ -106,19 +106,20 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
 
   return (
     <div className="fixed inset-0 flex flex-col bg-white">
-      <div className="h-10 bg-vp-dark flex items-center justify-between px-4 flex-shrink-0 z-50">
+      {/* Top bar */}
+      <div className="h-12 bg-vp-dark flex items-center justify-between px-4 flex-shrink-0 z-50">
         <button onClick={() => router.back()}
-          className="text-white/70 hover:text-white text-xs flex items-center gap-1.5 transition-colors">
+          className="text-white/70 hover:text-white text-sm flex items-center gap-1.5 transition-colors">
           ← Volver
         </button>
-        <span className="text-white/50 text-xs uppercase tracking-widest">
+        <span className="text-white/50 text-xs uppercase tracking-widest hidden sm:inline">
           {caseType === 'evar' ? 'EVAR — Simulador' : 'FEVAR — Simulador Fenestrado'}
           {existingCase && ' — Editando caso'}
         </span>
         <button
           onClick={requestSave}
           disabled={saving || saved}
-          className={`text-xs font-bold px-4 py-1 rounded transition-colors
+          className={`text-sm font-bold px-5 py-1.5 rounded-lg transition-colors
             ${saved ? 'bg-green-500 text-white' : 'bg-vp-red text-white hover:bg-vp-red/80'}
             disabled:opacity-60`}
         >
@@ -134,6 +135,17 @@ export default function SimulatorFrame({ toolPath, caseType, existingCase }: Sim
         title={caseType === 'evar' ? 'Simulador EVAR' : 'Simulador FEVAR'}
         onLoad={() => setIframeReady(true)}
       />
+
+      {/* Floating save button for mobile */}
+      <button
+        onClick={requestSave}
+        disabled={saving || saved}
+        className={`fixed bottom-6 right-6 z-50 px-6 py-3 rounded-full shadow-lg text-sm font-bold transition-all sm:hidden
+          ${saved ? 'bg-green-500 text-white' : 'bg-vp-red text-white hover:bg-vp-red/80 animate-pulse'}
+          disabled:opacity-60 disabled:animate-none`}
+      >
+        {saved ? '✓ Guardado' : saving ? 'Guardando...' : existingCase ? 'Actualizar' : 'Guardar caso'}
+      </button>
     </div>
   )
 }
