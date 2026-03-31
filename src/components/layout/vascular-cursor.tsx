@@ -84,23 +84,23 @@ export default function VascularCursor() {
           ? progress * 10
           : 1 - ((progress - 0.1) / 0.9)
 
-        // Draw flowing particle
+        // Draw flowing particle (dark blue, visible on white)
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size * (1 - progress * 0.5), 0, Math.PI * 2)
-        ctx.fillStyle = `hsla(${p.hue}, 70%, 55%, ${alpha * 0.4})`
+        ctx.fillStyle = `hsla(${p.hue}, 60%, 35%, ${alpha * 0.35})`
         ctx.fill()
 
-        // Inner glow
+        // Inner core (darker)
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size * 0.5 * (1 - progress * 0.3), 0, Math.PI * 2)
-        ctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${alpha * 0.6})`
+        ctx.fillStyle = `hsla(${p.hue}, 70%, 25%, ${alpha * 0.5})`
         ctx.fill()
       }
 
       // Draw subtle vessel trail connecting recent particles
       if (particles.length > 2) {
         ctx.beginPath()
-        ctx.strokeStyle = 'hsla(210, 70%, 55%, 0.08)'
+        ctx.strokeStyle = 'hsla(210, 50%, 30%, 0.1)'
         ctx.lineWidth = 3
         const recent = particles.slice(-20)
         ctx.moveTo(recent[0].x, recent[0].y)
@@ -126,7 +126,6 @@ export default function VascularCursor() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 z-[45] pointer-events-none"
-      style={{ mixBlendMode: 'screen' }}
     />
   )
 }
