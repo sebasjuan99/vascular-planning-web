@@ -122,6 +122,21 @@ export default function AdminPage() {
     setSaving(null)
   }
 
+  const toggleRole = async (user: AdminUser) => {
+    const newRole = user.role === 'admin' ? 'user' : 'admin'
+    const res = await fetch(`/api/admin/users/${user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || 'Error al cambiar rol')
+      return
+    }
+    await fetchUsers()
+  }
+
   const toggleCourse = async (user: AdminUser, courseId: string) => {
     setSaving(user.id + courseId)
     const current = user.courses || []
@@ -247,11 +262,14 @@ export default function AdminPage() {
                       </button>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        user.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <button
+                        onClick={() => toggleRole(user)}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full transition-colors ${
+                          user.role === 'admin' ? 'bg-purple-50 text-purple-700 hover:bg-purple-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
                         {user.role === 'admin' ? 'Admin' : 'Usuario'}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
