@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -27,9 +28,21 @@ export default function LoginPage() {
     router.refresh()
   }
 
-  function handleResetPassword() {
+  async function handleResetPassword() {
+    setError('')
+    if (!email) {
+      setError('Ingresa tu correo primero')
+      return
+    }
     const supabase = createClient()
-    supabase.auth.resetPasswordForEmail(email)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) {
+      setError(error.message)
+      return
+    }
+    setResetSent(true)
   }
 
   return (
@@ -66,6 +79,11 @@ export default function LoginPage() {
             />
           </div>
           {error && <p className="text-xs text-vp-red">{error}</p>}
+          {resetSent && (
+            <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded p-2">
+              ✓ Te enviamos un correo para restablecer tu contraseña
+            </p>
+          )}
           <div className="text-right">
             <button
               type="button"
