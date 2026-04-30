@@ -1,7 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { createClient } from '@/lib/supabase/client'
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 export default function RegistroPage() {
   const [form, setForm] = useState({
@@ -11,6 +14,8 @@ export default function RegistroPage() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
 
   function update(field: string, value: string) {
     setForm(f => ({ ...f, [field]: value }))
@@ -18,6 +23,12 @@ export default function RegistroPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError('Por favor completa la verificación de seguridad')
+      return
+    }
+
     setLoading(true)
     setError('')
     const supabase = createClient()
@@ -26,6 +37,7 @@ export default function RegistroPage() {
       email: form.email,
       password: form.password,
       options: {
+        ...(captchaToken ? { captchaToken } : {}),
         data: {
           full_name: `${form.nombre} ${form.apellido}`,
           specialty: form.especialidad,
@@ -36,7 +48,13 @@ export default function RegistroPage() {
       }
     })
 
-    if (error) { setError(error.message); setLoading(false); return }
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      turnstileRef.current?.reset()
+      setCaptchaToken(null)
+      return
+    }
 
     if (data.user) {
       await fetch('/api/admin/notify', {
@@ -110,6 +128,18 @@ export default function RegistroPage() {
             </div>
           ))}
           {error && <p className="text-xs text-vp-red">{error}</p>}
+          {TURNSTILE_SITE_KEY && (
+            <div className="flex justify-center">
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={setCaptchaToken}
+                onError={() => setCaptchaToken(null)}
+                onExpire={() => setCaptchaToken(null)}
+                options={{ theme: 'light', size: 'flexible' }}
+              />
+            </div>
+          )}
           <button type="submit" disabled={loading}
             className="w-full bg-vp-red text-white text-sm font-semibold py-2.5 rounded-md hover:bg-vp-red/90 disabled:opacity-50 mt-2">
             {loading ? 'Enviando...' : 'Enviar solicitud'}
