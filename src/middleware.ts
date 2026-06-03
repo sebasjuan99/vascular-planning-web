@@ -25,9 +25,17 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // No session → login
+  // No session → login (preserve the originally requested path so we
+  // can return the user there after they authenticate)
   if (!user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const loginUrl = new URL('/login', request.url)
+    const originalPath = request.nextUrl.pathname + request.nextUrl.search
+    // Only attach the redirect for dashboard routes (admin routes need
+    // an admin user, so post-login redirect is handled by login page logic)
+    if (request.nextUrl.pathname.startsWith('/dashboard')) {
+      loginUrl.searchParams.set('redirect', originalPath)
+    }
+    return NextResponse.redirect(loginUrl)
   }
 
   // Not approved → pending

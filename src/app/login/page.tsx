@@ -1,14 +1,39 @@
 'use client'
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { createClient } from '@/lib/supabase/client'
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
+/**
+ * Validate ?redirect= is a safe internal path:
+ *   - Must start with /
+ *   - Must NOT start with // (could be a protocol-relative URL → open redirect)
+ *   - Must NOT contain a colon (would allow javascript:, data:, http:)
+ */
+function safeRedirect(raw: string | null): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/')) return null
+  if (raw.startsWith('//')) return null
+  if (raw.includes(':')) return null
+  return raw
+}
+
+// Wrap useSearchParams() in Suspense (Next.js 14 requirement for static optimization)
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-vp-surface" />}>
+      <LoginPageInner />
+    </Suspense>
+  )
+}
+
+function LoginPageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectParam = safeRedirect(searchParams.get('redirect'))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -40,7 +65,9 @@ export default function LoginPage() {
       return
     }
     const isAdmin = data.user?.user_metadata?.role === 'admin'
-    router.push(isAdmin ? '/admin' : '/dashboard/mis-casos')
+    // Priority: explicit redirect param (validated) → admin → default user dashboard
+    const dest = redirectParam ?? (isAdmin ? '/admin' : '/dashboard/mis-casos')
+    router.push(dest)
     router.refresh()
   }
 

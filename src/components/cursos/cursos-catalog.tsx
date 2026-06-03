@@ -1,71 +1,10 @@
 import Image from 'next/image'
-import { ExternalLink } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { COURSES, type Course, getCoursesByCategory, formatCLP } from '@/lib/courses'
 
-const ENROLLMENT_URL =
-  'https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=wCgnBPvgaEeCV5k43x4jJso4i2xa0TRLtdz2-zpMnxVUOU1PSDZNVkJDNUlDRUdMSjFHME1SOUJYQi4u'
-
-interface Course {
-  title: string
-  description: string
-  category: 'Aorta' | 'Periférico'
-  image?: string
-  video?: string
-  gradient: string
-}
-
-const aortaCourses: Course[] = [
-  {
-    title: 'EVAR',
-    description:
-      'Reparación Endovascular de Aneurisma Aórtico. Planificación y simulación del abordaje endovascular estándar.',
-    category: 'Aorta',
-    image: '/images/curso-evar.webp',
-    gradient: 'from-blue-600 to-blue-800',
-  },
-  {
-    title: 'FEVAR',
-    description:
-      'Reparación Endovascular Fenestrada. Técnicas avanzadas para anatomías complejas con dispositivos fenestrados y ramificados.',
-    category: 'Aorta',
-    image: '/images/curso-fevar.webp',
-    gradient: 'from-purple-600 to-purple-800',
-  },
-  {
-    title: 'TEVAR',
-    description:
-      'Reparación Endovascular Torácica. Abordaje endovascular de patología aórtica torácica con planificación avanzada.',
-    category: 'Aorta',
-    image: '/images/curso-tevar.webp',
-    gradient: 'from-indigo-600 to-indigo-800',
-  },
-]
-
-const perifericoCourses: Course[] = [
-  {
-    title: 'Angiografía Básica',
-    description:
-      'Fundamentos de la angiografía diagnóstica y terapéutica en el territorio vascular periférico.',
-    category: 'Periférico',
-    image: '/images/curso-periferico.jpg',
-    gradient: 'from-green-600 to-green-800',
-  },
-  {
-    title: 'Uso de Ultrasonido en Cirugía Vascular (VR)',
-    description:
-      'Entrenamiento en realidad virtual para el uso de ultrasonido doppler en evaluación y diagnóstico vascular.',
-    category: 'Periférico',
-    video: '/videos/curso-ultrasonido.mp4',
-    gradient: 'from-teal-600 to-teal-800',
-  },
-  {
-    title: 'Accesos Vasculares Guiados con Ultrasonido (VR)',
-    description:
-      'Simulación en realidad virtual de accesos vasculares guiados por ecografía para procedimientos seguros.',
-    category: 'Periférico',
-    video: '/videos/curso-accesos.mp4',
-    gradient: 'from-emerald-600 to-emerald-800',
-  },
-]
+// Public catalog: clicking "Inscribirse" sends the user to /dashboard/cursos.
+// If not authenticated, middleware bounces to /login?redirect=/dashboard/cursos.
 
 function CourseCard({ course }: { course: Course }) {
   return (
@@ -94,7 +33,7 @@ function CourseCard({ course }: { course: Course }) {
             className={`absolute inset-0 bg-gradient-to-br ${course.gradient} flex items-center justify-center`}
           >
             <span className="text-white/30 text-6xl font-bold">
-              {course.title.charAt(0)}
+              {course.shortTitle.charAt(0)}
             </span>
           </div>
         )}
@@ -110,23 +49,24 @@ function CourseCard({ course }: { course: Course }) {
       {/* Body */}
       <div className="p-6 flex flex-col flex-1">
         <h3 className="text-lg font-semibold text-vp-dark mb-2">
-          {course.title}
+          {course.shortTitle}
         </h3>
         <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-1">
           {course.description}
         </p>
 
         {/* Footer */}
-        <div className="pt-4 border-t border-vp-border">
-          <a
-            href={ENROLLMENT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+        <div className="pt-4 border-t border-vp-border flex items-center justify-between">
+          <span className="text-sm font-bold text-vp-dark">
+            {formatCLP(course.price)}
+          </span>
+          <Link
+            href="/dashboard/cursos"
             className="inline-flex items-center gap-2 text-sm font-semibold text-clinical-blue hover:text-clinical-container transition-colors"
           >
             Inscribirse
-            <ExternalLink className="w-4 h-4" />
-          </a>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
     </div>
@@ -134,6 +74,9 @@ function CourseCard({ course }: { course: Course }) {
 }
 
 export default function CursosCatalog() {
+  const aortaCourses = getCoursesByCategory('Aorta')
+  const perifericoCourses = getCoursesByCategory('Periférico')
+
   return (
     <section className="py-24 bg-white">
       <div className="max-w-6xl mx-auto px-6">
@@ -154,7 +97,7 @@ export default function CursosCatalog() {
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             {aortaCourses.map((course) => (
-              <CourseCard key={course.title} course={course} />
+              <CourseCard key={course.id} course={course} />
             ))}
           </div>
         </div>
@@ -166,10 +109,17 @@ export default function CursosCatalog() {
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             {perifericoCourses.map((course) => (
-              <CourseCard key={course.title} course={course} />
+              <CourseCard key={course.id} course={course} />
             ))}
           </div>
         </div>
+
+        {/* Below catalog: confirm all 6 are visible */}
+        {COURSES.length !== aortaCourses.length + perifericoCourses.length && (
+          <p className="text-center text-xs text-red-500 mt-8">
+            Faltan cursos: {COURSES.length} totales, {aortaCourses.length + perifericoCourses.length} mostrados
+          </p>
+        )}
       </div>
     </section>
   )
