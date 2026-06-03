@@ -1,89 +1,108 @@
-'use client'
-import { useState } from 'react'
-import { Play } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import Image from 'next/image'
+import { createClient } from '@/lib/supabase/server'
+import { COURSES, formatCLP } from '@/lib/courses'
+import { getUserCourseAccess } from '@/lib/access'
+import CourseCardActions from '@/components/dashboard/course-card-actions'
 
-const COURSES = [
-  {
-    id: 1, type: 'evar', title: 'Planificación EVAR: Anatomía y Medidas',
-    instructor: 'Dr. Carlos Mejía', duration: '45 min',
-    date: 'Feb 2025', isNew: false, progress: 65,
-    color: 'from-[#0058bc] to-blue-400',
-  },
-  {
-    id: 2, type: 'fevar', title: 'FEVAR: Casos Complejos con Fenestraciones',
-    instructor: 'Dr. Andrés Vargas', duration: '1h 20min',
-    date: 'Mar 2026', isNew: true, progress: 0,
-    color: 'from-slate-800 to-slate-600',
-  },
-  {
-    id: 3, type: 'evar', title: 'Selección de Endoprótesis: Guía Práctica',
-    instructor: 'Dr. Carlos Mejía', duration: '35 min',
-    date: 'Ene 2025', isNew: false, progress: 0,
-    color: 'from-slate-500 to-slate-400',
-  },
-]
+export default async function CursosDashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?redirect=/dashboard/cursos')
 
-type Filter = 'todos' | 'evar' | 'fevar' | 'nuevos'
-
-export default function CursosPage() {
-  const [filter, setFilter] = useState<Filter>('todos')
-
-  const filtered = COURSES.filter(c => {
-    if (filter === 'evar') return c.type === 'evar'
-    if (filter === 'fevar') return c.type === 'fevar'
-    if (filter === 'nuevos') return c.isNew
-    return true
-  })
+  const access = await getUserCourseAccess(supabase, user)
+  const accessMap = new Map(access.map((a) => [a.courseId, a]))
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Cursos y Actualizaciones</h1>
-        <p className="text-sm text-slate-500 mt-1">Formación en cirugía endovascular</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          Cursos
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Formación clínica especializada en cirugía vascular y endovascular
+        </p>
       </div>
 
-      <div className="flex gap-2 mb-8">
-        {(['todos', 'evar', 'fevar', 'nuevos'] as Filter[]).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`text-xs font-semibold px-4 py-2 rounded-full transition-colors capitalize
-              ${filter === f
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
-            {f === 'todos' ? 'Todos' : f.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {COURSES.map((course) => {
+          const hasAccess = accessMap.has(course.id)
+          const accessRecord = accessMap.get(course.id)
 
-      <div className="space-y-4">
-        {filtered.map(course => (
-          <div key={course.id} className="bg-white rounded-xl shadow-apple overflow-hidden flex">
-            <div className={`w-20 bg-gradient-to-b ${course.color} flex items-center justify-center flex-shrink-0`}>
-              <Play className="w-6 h-6 text-white" />
-            </div>
-            <div className="p-5 flex-1">
-              <div className="flex items-start justify-between gap-3 mb-1.5">
-                <h3 className="font-bold text-sm text-slate-900 leading-tight">{course.title}</h3>
-                {course.isNew && (
-                  <span className="bg-[#0058bc]/10 text-[#0058bc] text-[10px] font-bold uppercase px-2.5 py-1 rounded-full flex-shrink-0">
-                    NUEVO
+          return (
+            <div
+              key={course.id}
+              className="bg-white rounded-2xl shadow-apple overflow-hidden border border-slate-100 flex flex-col"
+            >
+              {/* Media */}
+              <div className="relative h-44 overflow-hidden">
+                {course.video ? (
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  >
+                    <source src={course.video} type="video/mp4" />
+                  </video>
+                ) : course.image ? (
+                  <Image
+                    src={course.image}
+                    alt={course.shortTitle}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${course.gradient}`}
+                  />
+                )}
+                <span
+                  className={`absolute top-3 left-3 ${
+                    course.category === 'Aorta' ? 'bg-blue-600' : 'bg-green-600'
+                  } text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full`}
+                >
+                  {course.category}
+                </span>
+                {hasAccess && (
+                  <span className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                    Acceso activo
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 mb-3">
-                {course.duration} · {course.instructor} · {course.date}
-              </p>
-              {course.progress > 0 && (
-                <div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#0058bc] rounded-full transition-all" style={{ width: `${course.progress}%` }} />
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1.5">{course.progress}% completado</p>
+
+              {/* Body */}
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="text-base font-bold text-slate-900 mb-2 leading-tight">
+                  {course.shortTitle}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed mb-4 flex-1">
+                  {course.description}
+                </p>
+
+                {/* Actions */}
+                <div className="pt-4 border-t border-slate-100">
+                  <CourseCardActions
+                    courseId={course.id}
+                    courseTitle={course.shortTitle}
+                    priceLabel={formatCLP(course.price)}
+                    hasAccess={hasAccess}
+                    accessSource={accessRecord?.source}
+                  />
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
+
+      {access.length === 0 && (
+        <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-900">
+          Compra cualquiera de los cursos para reservar tu cupo. Te notificaremos
+          por correo cuando el contenido esté disponible.
+        </div>
+      )}
     </div>
   )
 }
