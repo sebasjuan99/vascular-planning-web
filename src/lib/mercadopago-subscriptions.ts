@@ -52,6 +52,9 @@ export interface MPPreapprovalResponse {
 export async function createSubscription(
   input: CreateSubscriptionInput
 ): Promise<MPPreapprovalResponse> {
+  // Minimal body: MP defaults status to 'pending' and infers start_date
+  // when omitted. Sending too many fields can trigger Internal Server
+  // Error in MP's CLP sandbox.
   const body: Record<string, unknown> = {
     reason: input.reason,
     external_reference: input.externalReference,
@@ -65,7 +68,8 @@ export async function createSubscription(
       start_date: input.startDateIso,
     },
     notification_url: input.notificationUrl,
-    status: 'pending', // becomes 'authorized' after user authorizes on MP
+    // Do NOT send `status: 'pending'` — MP sandbox returns 500 if status
+    // is present without card_token_id. Leave it for MP to default.
   }
   if (input.preapprovalPlanId) {
     body.preapproval_plan_id = input.preapprovalPlanId
@@ -82,7 +86,12 @@ export async function createSubscription(
 
   if (!res.ok) {
     const errBody = await res.text()
-    throw new Error(`MP preapproval create failed (${res.status}): ${errBody.slice(0, 500)}`)
+    // Include the request body (with email masked) so we can debug what
+    // MP rejected. The Error message gets returned to the client too.
+    const debugBody = JSON.stringify({ ...body, payer_email: '<masked>' })
+    throw new Error(
+      `MP preapproval create failed (${res.status}): ${errBody.slice(0, 800)} | request=${debugBody.slice(0, 500)}`
+    )
   }
 
   const data = (await res.json()) as MPPreapprovalResponse
