@@ -2,12 +2,18 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SimulatorFrame from '@/components/simulator/simulator-frame'
 import type { Case } from '@/lib/types'
+import { hasActiveModuleSubscription } from '@/lib/subscriptions'
 
 export default async function FevarPage({ searchParams }: { searchParams: { caseId?: string } }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const modules: string[] = user?.user_metadata?.modules || []
-  if (!modules.includes('fevar') && user?.user_metadata?.role !== 'admin') {
+  const isAdmin = user?.user_metadata?.role === 'admin'
+  const inMeta = modules.includes('fevar')
+  const hasSub = !isAdmin && !inMeta && user
+    ? await hasActiveModuleSubscription(supabase, user, 'fevar')
+    : false
+  if (!isAdmin && !inMeta && !hasSub) {
     redirect('/dashboard/planificar')
   }
 

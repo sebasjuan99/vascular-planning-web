@@ -3,6 +3,7 @@ import ToolCard from '@/components/dashboard/tool-card'
 import { Info } from 'lucide-react'
 import { formatCLP } from '@/lib/courses'
 import { getProductRow } from '@/lib/products'
+import { hasActiveModuleSubscription } from '@/lib/subscriptions'
 
 export default async function PlanificarPage() {
   const supabase = await createClient()
@@ -10,12 +11,21 @@ export default async function PlanificarPage() {
   const modules: string[] = user?.user_metadata?.modules || []
   const isAdmin = user?.user_metadata?.role === 'admin'
 
-  // Product that unlocks both calculators when purchased
-  const unlockRow = await getProductRow('acceso-calculadoras')
-  const unlockPriceLabel = unlockRow && unlockRow.active
-    ? formatCLP(unlockRow.price)
+  // Access can come from: admin role, admin-granted module, or active subscription
+  const hasEvar =
+    isAdmin ||
+    modules.includes('evar') ||
+    (user ? await hasActiveModuleSubscription(supabase, user, 'evar') : false)
+  const hasFevar =
+    isAdmin ||
+    modules.includes('fevar') ||
+    (user ? await hasActiveModuleSubscription(supabase, user, 'fevar') : false)
+
+  // Cheapest active subscription option for the "from $X/mes" hint
+  const monthlyRow = await getProductRow('suscripcion-calculadoras-mensual')
+  const subscribeLabel = monthlyRow?.active
+    ? `desde ${formatCLP(monthlyRow.price)}/mes`
     : undefined
-  const unlockCourseId = unlockRow?.active ? 'acceso-calculadoras' : undefined
 
   return (
     <div className="max-w-4xl">
@@ -28,16 +38,16 @@ export default async function PlanificarPage() {
         <ToolCard
           type="evar"
           href="/dashboard/planificar/evar"
-          hasAccess={isAdmin || modules.includes('evar')}
-          unlockCourseId={unlockCourseId}
-          unlockPriceLabel={unlockPriceLabel}
+          hasAccess={hasEvar}
+          subscribeHref="/dashboard/cursos"
+          subscribeFromLabel={subscribeLabel}
         />
         <ToolCard
           type="fevar"
           href="/dashboard/planificar/fevar"
-          hasAccess={isAdmin || modules.includes('fevar')}
-          unlockCourseId={unlockCourseId}
-          unlockPriceLabel={unlockPriceLabel}
+          hasAccess={hasFevar}
+          subscribeHref="/dashboard/cursos"
+          subscribeFromLabel={subscribeLabel}
         />
       </div>
 
