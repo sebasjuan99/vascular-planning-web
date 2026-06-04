@@ -34,6 +34,37 @@ function PagoSuccessInner() {
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | null = null
 
+    // 1. First, try active verification using the payment_id from MP redirect.
+    // This doesn't depend on the webhook firing — we ask MP directly and
+    // update the DB ourselves. Falls back to polling on any failure.
+    async function verifyDirect(): Promise<string | null> {
+      const paymentId =
+        search.get('payment_id') ||
+        search.get('collection_id') ||
+        ''
+      if (!paymentId) return null
+
+      try {
+        const res = await fetch('/api/payments/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentId }),
+          cache: 'no-store',
+        })
+        if (res.status === 401) {
+          router.push('/login?redirect=/dashboard/cursos')
+          return null
+        }
+        const data = await res.json()
+        if (data?.status === 'approved' && data?.courseId) {
+          return String(data.courseId)
+        }
+      } catch {
+        // Ignore, fall back to polling
+      }
+      return null
+    }
+
     async function poll(attempt: number) {
       if (cancelled) return
       setPolls(attempt)
@@ -51,22 +82,10 @@ function PagoSuccessInner() {
             : []
         )
 
-        // The most recently approved course should be the one we just bought.
-        // Try to infer it from the external_reference (=purchase row id) via
-        // an extra lookup, otherwise pick any owned course.
-        const refParam = search.get('external_reference')
-        if (refParam) {
-          // The purchase row id won't directly tell us the courseId from the
-          // client. The simpler heuristic: redirect to /dashboard/cursos and
-          // let the user see the access state.
-        }
-
         // Find the first owned courseId — for new buyers, that IS the one
         // they just paid for.
         const owned = Array.from(ownedIds)
         if (owned.length > 0) {
-          // If multiple courses owned, we can't disambiguate from here.
-          // Send the user to the catalog where they see all their courses.
           const target = owned.length === 1 ? owned[0] : null
           if (target && COURSES.some((c) => c.id === target)) {
             setTargetCourseId(target)
@@ -94,7 +113,19 @@ function PagoSuccessInner() {
       }
     }
 
-    poll(1)
+    async function run() {
+      const direct = await verifyDirect()
+      if (cancelled) return
+      if (direct) {
+        setTargetCourseId(direct)
+        setTimeout(() => router.push(`/dashboard/cursos/${direct}`), 800)
+        return
+      }
+      // Fallback to polling my-courses (in case the webhook eventually fires)
+      poll(1)
+    }
+
+    run()
     return () => {
       cancelled = true
       if (timer) clearTimeout(timer)
