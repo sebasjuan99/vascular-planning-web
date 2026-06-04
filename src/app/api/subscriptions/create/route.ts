@@ -141,8 +141,14 @@ export async function POST(req: NextRequest) {
       mpPreapprovalId: result.id,
     })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('[subs/create] MP failure:', message)
+    const errAny = err as { message?: string; stack?: string }
+    const message = errAny?.message || (err instanceof Error ? err.message : 'Unknown error')
+    // Always dump the full MP error so we can debug subscription failures
+    console.error('[subs/create] MP FULL ERROR:', JSON.stringify({
+      message,
+      stack: errAny?.stack?.slice(0, 1500),
+      raw: (() => { try { return JSON.stringify(err) } catch { return String(err) } })(),
+    }, null, 2))
     // Mark our row as cancelled so the user can retry cleanly
     await admin
       .from('subscriptions')

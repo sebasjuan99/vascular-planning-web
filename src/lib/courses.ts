@@ -10,8 +10,15 @@ export type CourseCategory = 'Aorta' | 'Periférico' | 'Herramientas'
 export type GrantableModule = 'evar' | 'fevar'
 
 export interface SubscriptionSpec {
-  frequencyValue: number               // 1
-  frequencyType: 'months' | 'years'    // 'months' | 'years'
+  /** Frequency value sent to MP /preapproval (e.g. 1 for monthly, 12 for annual). */
+  frequencyValue: number
+  /**
+   * MercadoPago only accepts 'days' or 'months'. For annual plans use
+   * frequencyValue=12, frequencyType='months'.
+   */
+  frequencyType: 'months' | 'days'
+  /** Display label shown on UI (e.g. "/mes", "/año"). */
+  displayLabel: '/mes' | '/año' | '/sem'
   /** Optional MP preapproval_plan_id to associate the subscription with. */
   preapprovalPlanId?: string
 }
@@ -62,7 +69,7 @@ export const COURSES: Course[] = [
     currency: 'CLP',
     contentReady: true,
     grantsModules: ['evar', 'fevar'] as const,
-    subscription: { frequencyValue: 1, frequencyType: 'months' },
+    subscription: { frequencyValue: 1, frequencyType: 'months', displayLabel: '/mes' },
   },
   {
     id: 'suscripcion-calculadoras-anual',
@@ -78,7 +85,8 @@ export const COURSES: Course[] = [
     currency: 'CLP',
     contentReady: true,
     grantsModules: ['evar', 'fevar'] as const,
-    subscription: { frequencyValue: 1, frequencyType: 'years' },
+    // MP doesn't accept frequency_type='years'; annual = 12 months.
+    subscription: { frequencyValue: 12, frequencyType: 'months', displayLabel: '/año' },
   },
   // ─── Legacy one-time bundle (kept for users who already purchased) ─────
   // Hidden from catalog via products.active = false. Existing approved
