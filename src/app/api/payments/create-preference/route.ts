@@ -5,6 +5,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getCourse } from '@/lib/courses'
 import { hasAccessToCourse } from '@/lib/access'
 import { createPreference } from '@/lib/mercadopago'
+import { getProductRow } from '@/lib/products'
+import { validateCoupon } from '@/lib/coupons'
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000
 
@@ -17,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Parse body
-  let body: { courseId?: string }
+  let body: { courseId?: string; couponCode?: string }
   try {
     body = await req.json()
   } catch {
@@ -28,10 +30,23 @@ export async function POST(req: NextRequest) {
   if (!courseId) {
     return NextResponse.json({ error: 'courseId is required' }, { status: 400 })
   }
+  const couponCode = (body?.couponCode ?? '').trim()
 
   const course = getCourse(courseId)
   if (!course) {
     return NextResponse.json({ error: 'Unknown course' }, { status: 400 })
+  }
+
+  // Read current price + active flag from DB. Falls back to course.price
+  // if the row doesn't exist (shouldn't after migration 005).
+  const productRow = await getProductRow(courseId)
+  const currentPrice = productRow?.price ?? course.price
+  const isActive = productRow?.active ?? true
+  if (!isActive) {
+    return NextResponse.json(
+      { error: 'product-inactive', message: 'Este producto no está disponible actualmente.' },
+      { status: 410 }
+    )
   }
 
   // 3. Block if user already has access
@@ -42,27 +57,60 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // 3b. Apply coupon if provided (server-side re-validation, never trust client)
+  let appliedCouponId: string | null = null
+  let discountAmount = 0
+  let finalPrice = currentPrice
+  if (couponCode) {
+    const cv = await validateCoupon(couponCode, courseId, currentPrice)
+    if (!cv.ok) {
+      return NextResponse.json(
+        { error: 'invalid-coupon', message: cv.message ?? 'Cupón no válido' },
+        { status: 400 }
+      )
+    }
+    appliedCouponId = cv.coupon!.id
+    discountAmount = cv.discount ?? 0
+    finalPrice = cv.finalPrice ?? currentPrice
+  }
+
+  // MercadoPago requires unit_price >= 500 CLP in Chile. If the coupon
+  // takes the price below that floor, reject so we don't get an MP error.
+  if (finalPrice > 0 && finalPrice < 500) {
+    return NextResponse.json(
+      { error: 'price-below-minimum', message: 'El precio con descuento es menor al mínimo permitido por MercadoPago (500 CLP).' },
+      { status: 400 }
+    )
+  }
+  // If coupon makes it free (100%), we can't create a $0 MP preference.
+  // Instead, grant access directly and return a synthetic redirect URL.
+  // Handled below by short-circuiting after inserting the purchase row.
+
   const admin = createAdminClient()
 
-  // 4. Idempotency: reuse a pending preference if it's < 24h old
-  const cutoff = new Date(Date.now() - TWENTY_FOUR_HOURS_MS).toISOString()
-  const { data: existing } = await admin
-    .from('course_purchases')
-    .select('id, mp_preference_id, mp_init_point, created_at')
-    .eq('user_id', user.id)
-    .eq('course_id', courseId)
-    .eq('status', 'pending')
-    .gte('created_at', cutoff)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  // 4. Idempotency: reuse a pending preference if it's < 24h old.
+  //    Skip when a coupon is in play — the user might be trying a different
+  //    code and we don't want to reuse a preference with the old discount.
+  if (!couponCode) {
+    const cutoff = new Date(Date.now() - TWENTY_FOUR_HOURS_MS).toISOString()
+    const { data: existing } = await admin
+      .from('course_purchases')
+      .select('id, mp_preference_id, mp_init_point, created_at')
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+      .eq('status', 'pending')
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-  if (existing?.mp_init_point) {
-    return NextResponse.json({
-      initPoint: existing.mp_init_point,
-      preferenceId: existing.mp_preference_id,
-      reused: true,
-    })
+    if (existing?.mp_init_point) {
+      return NextResponse.json({
+        initPoint: existing.mp_init_point,
+        preferenceId: existing.mp_preference_id,
+        reused: true,
+      })
+    }
   }
 
   // 5. Insert pending row first so we have the UUID for external_reference
@@ -72,8 +120,10 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       course_id: courseId,
       status: 'pending',
-      amount: course.price,
+      amount: finalPrice,
       currency: course.currency,
+      coupon_id: appliedCouponId,
+      discount_amount: discountAmount,
     })
     .select('id')
     .single()
@@ -81,6 +131,56 @@ export async function POST(req: NextRequest) {
   if (insertError || !inserted) {
     console.error('[create-preference] insert failed:', insertError?.message)
     return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 })
+  }
+
+  // 5b. Fully-discounted purchase (100% off coupon): skip MercadoPago entirely,
+  //     mark as approved + grant modules immediately, redirect to access page.
+  if (finalPrice === 0) {
+    const now = new Date().toISOString()
+    await admin
+      .from('course_purchases')
+      .update({
+        status: 'approved',
+        approved_at: now,
+        updated_at: now,
+      })
+      .eq('id', inserted.id)
+
+    // Grant modules if applicable (same merge logic as webhook)
+    const grants = course.grantsModules ?? []
+    if (grants.length > 0) {
+      try {
+        const { data: userData } = await admin.auth.admin.getUserById(user.id)
+        const currentMeta = userData?.user?.user_metadata ?? {}
+        const currentModules: string[] = Array.isArray(currentMeta.modules)
+          ? currentMeta.modules
+          : []
+        const merged = Array.from(new Set([...currentModules, ...grants]))
+        if (merged.length !== currentModules.length) {
+          await admin.auth.admin.updateUserById(user.id, {
+            user_metadata: { ...currentMeta, modules: merged },
+          })
+        }
+      } catch (err) {
+        console.error('[create-preference] free-grant modules update failed:', err)
+      }
+    }
+
+    // Increment coupon uses now (no webhook will fire to do it later)
+    if (appliedCouponId) {
+      const { data: cdata } = await admin
+        .from('coupons').select('uses_count').eq('id', appliedCouponId).single()
+      const c = cdata as { uses_count?: number } | null
+      const used = Number(c?.uses_count ?? 0)
+      await admin.from('coupons').update({ uses_count: used + 1 }).eq('id', appliedCouponId)
+    }
+
+    // The client treats `initPoint` as the redirect URL. Send it straight
+    // to the access page.
+    return NextResponse.json({
+      initPoint: `/dashboard/cursos/${courseId}`,
+      freeGrant: true,
+    })
   }
 
   // 6. Build base URL for back_urls / notification_url
@@ -99,7 +199,7 @@ export async function POST(req: NextRequest) {
       courseTitle: course.title,
       externalReference: inserted.id,
       userEmail: user.email ?? 'unknown@vascularplanning.com',
-      amount: course.price,
+      amount: finalPrice,
       currency: course.currency,
       appUrl,
     })

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchPayment, mpStatusToDb } from '@/lib/mercadopago'
 import { getCourse } from '@/lib/courses'
+import { incrementCouponUses } from '@/lib/coupons'
 
 /**
  * Active payment verification — called from /pago/success.
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
   // 2. Look up the matching purchase row (must belong to the caller)
   const { data: row, error: lookupError } = await admin
     .from('course_purchases')
-    .select('id, status, user_id, course_id')
+    .select('id, status, user_id, course_id, coupon_id')
     .eq('id', externalReference)
     .maybeSingle()
 
@@ -129,6 +130,16 @@ export async function POST(req: NextRequest) {
         granted = [...grants]
       } catch (err) {
         console.error('[verify] grantsModules update failed:', err)
+      }
+    }
+
+    // 6. Count coupon usage on approved purchase
+    const rowAny = row as { coupon_id?: string | null }
+    if (rowAny.coupon_id) {
+      try {
+        await incrementCouponUses(rowAny.coupon_id)
+      } catch (err) {
+        console.error('[verify] incrementCouponUses failed:', err)
       }
     }
   }

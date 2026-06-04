@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { COURSES, type Course, getCoursesByCategory, formatCLP } from '@/lib/courses'
+import { type Course, formatCLP } from '@/lib/courses'
+import { getHydratedCourses } from '@/lib/products'
 
 // Public catalog: clicking "Inscribirse" sends the user to /dashboard/cursos.
 // If not authenticated, middleware bounces to /login?redirect=/dashboard/cursos.
@@ -73,9 +74,12 @@ function CourseCard({ course }: { course: Course }) {
   )
 }
 
-export default function CursosCatalog() {
-  const aortaCourses = getCoursesByCategory('Aorta')
-  const perifericoCourses = getCoursesByCategory('Periférico')
+export default async function CursosCatalog() {
+  // Only active products show up in the public catalog. Inactive products
+  // (still purchasable by direct link if their row exists) stay hidden.
+  const all = await getHydratedCourses({ onlyActive: true })
+  const aortaCourses = all.filter((c) => c.category === 'Aorta')
+  const perifericoCourses = all.filter((c) => c.category === 'Periférico')
 
   return (
     <section className="py-24 bg-white">
@@ -114,12 +118,6 @@ export default function CursosCatalog() {
           </div>
         </div>
 
-        {/* Below catalog: confirm all 6 are visible */}
-        {COURSES.length !== aortaCourses.length + perifericoCourses.length && (
-          <p className="text-center text-xs text-red-500 mt-8">
-            Faltan cursos: {COURSES.length} totales, {aortaCourses.length + perifericoCourses.length} mostrados
-          </p>
-        )}
       </div>
     </section>
   )
