@@ -104,9 +104,11 @@ export async function POST(req: NextRequest) {
     req.nextUrl.host
   const appUrl = `https://${host}`.replace(/\/+$/, '')
 
-  // 3. Call MP API to create the preapproval
+  // 3. Call MP API to create the preapproval.
+  //    MP rejects start_date if it's in the past, so we add a small buffer
+  //    to account for network latency between our server and MP's API.
   try {
-    const startDate = new Date().toISOString()
+    const startDate = new Date(Date.now() + 2 * 60 * 1000).toISOString()
     const result = await createSubscription({
       externalReference: inserted.id,
       payerEmail: user.email ?? 'unknown@vascularplanning.com',
