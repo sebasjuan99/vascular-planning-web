@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchPayment, mpStatusToDb, verifyWebhookSignature } from '@/lib/mercadopago'
+import { getCourse } from '@/lib/courses'
 
 /**
  * MercadoPago Webhook handler.
@@ -100,6 +101,31 @@ export async function POST(req: NextRequest) {
   if (updateError) {
     console.error('[webhook] DB update failed:', updateError.message)
     return NextResponse.json({ ok: true, error: 'update-failed' })
+  }
+
+  // 5. Grant modules (EVAR/FEVAR access) if the purchased product unlocks them.
+  // We merge into existing user_metadata.modules so admin-granted access is preserved.
+  if (newStatus === 'approved') {
+    const course = getCourse(row.course_id)
+    const grants = course?.grantsModules ?? []
+    if (grants.length > 0) {
+      try {
+        const { data: userData } = await admin.auth.admin.getUserById(row.user_id)
+        const currentMeta = userData?.user?.user_metadata ?? {}
+        const currentModules: string[] = Array.isArray(currentMeta.modules)
+          ? currentMeta.modules
+          : []
+        const merged = Array.from(new Set([...currentModules, ...grants]))
+        if (merged.length !== currentModules.length) {
+          await admin.auth.admin.updateUserById(row.user_id, {
+            user_metadata: { ...currentMeta, modules: merged },
+          })
+        }
+      } catch (err) {
+        console.error('[webhook] grantsModules update failed:', err)
+        // Don't fail the webhook — purchase row is updated, modules can be retried later
+      }
+    }
   }
 
   return NextResponse.json({ ok: true, status: newStatus })
