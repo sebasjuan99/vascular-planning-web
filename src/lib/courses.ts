@@ -6,7 +6,8 @@
 //
 // When adding/editing a course, change it here only.
 
-export type CourseCategory = 'Aorta' | 'Periférico'
+export type CourseCategory = 'Aorta' | 'Periférico' | 'Herramientas'
+export type GrantableModule = 'evar' | 'fevar'
 
 export interface Course {
   id: string                 // Stable identifier used in DB and admin panel
@@ -21,11 +22,32 @@ export interface Course {
   price: number              // In CLP, no decimals
   currency: 'CLP'
   contentReady: boolean      // Toggle to true when actual content is launched
+  /**
+   * Modules to grant on approved purchase. Webhook merges these into
+   * user_metadata.modules so the user immediately unlocks the
+   * corresponding simulator(s) under /dashboard/planificar/*.
+   */
+  grantsModules?: readonly GrantableModule[]
 }
 
 export const COURSE_PRICE_CLP = 897_000
 
 export const COURSES: Course[] = [
+  {
+    id: 'acceso-calculadoras',
+    slug: 'acceso-calculadoras',
+    title: 'Acceso a Calculadoras EVAR + FEVAR',
+    shortTitle: 'Calculadoras EVAR + FEVAR',
+    description:
+      'Acceso completo a las herramientas de planificación quirúrgica EVAR y FEVAR. Diseña cada caso con precisión milimétrica directamente desde tu dashboard.',
+    category: 'Herramientas',
+    image: '/images/vascular-planning-3d.png',
+    gradient: 'from-cyan-600 to-cyan-800',
+    price: 50_000,
+    currency: 'CLP',
+    contentReady: true,
+    grantsModules: ['evar', 'fevar'] as const,
+  },
   {
     id: 'curso-evar',
     slug: 'curso-evar',
