@@ -114,15 +114,46 @@ export async function POST(req: NextRequest) {
       preferenceId: result.preferenceId,
       reused: false,
     })
-  } catch (err) {
-    console.error('[create-preference] MP failure:', err)
+  } catch (err: unknown) {
+    // MercadoPago SDK throws objects with a non-standard shape — capture
+    // everything useful so we can debug what they rejected.
+    const errAny = err as {
+      message?: string
+      status?: number
+      error?: string
+      cause?: unknown
+      response?: { data?: unknown }
+    }
+    const fullDetails = {
+      message: errAny?.message,
+      status: errAny?.status,
+      error: errAny?.error,
+      cause: errAny?.cause,
+      responseData: errAny?.response?.data,
+      stringified: (() => {
+        try { return JSON.stringify(err) } catch { return String(err) }
+      })(),
+    }
+    console.error('[create-preference] MP failure FULL:', JSON.stringify(fullDetails, null, 2))
+
     // Mark the row as rejected so it doesn't block future attempts
     await admin
       .from('course_purchases')
       .update({ status: 'rejected', updated_at: new Date().toISOString() })
       .eq('id', inserted.id)
+
+    // Build a human-friendly message for the UI
+    const humanMsg =
+      errAny?.message ||
+      (typeof errAny?.cause === 'string' ? errAny.cause : undefined) ||
+      'MercadoPago rechazó la solicitud. Revisa el access token y el país de la cuenta.'
+
     return NextResponse.json(
-      { error: 'mercadopago-failure', message: err instanceof Error ? err.message : 'Unknown error' },
+      {
+        error: 'mercadopago-failure',
+        message: humanMsg,
+        debug: fullDetails, // Temporary: expose details to client for debugging
+      },
       { status: 502 }
     )
   }
