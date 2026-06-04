@@ -63,7 +63,31 @@
       "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*Jeison* \"/c/Users/Sebastian/vascular-planning-web/public/\"*jeison*)",
       "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Logo Vascular Planning.png\" \"public/images/logo-vascular-planning.png\")",
       "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/public/Dr Jeison Y Dr Espindola.jpeg\" \"public/images/dr-jeison-y-dr-espindola.jpeg\")",
-      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*resultado* \"/c/Users/Sebastian/vascular-planning-web/public/\"*Resultado*)"
+      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/public/\"*resultado* \"/c/Users/Sebastian/vascular-planning-web/public/\"*Resultado*)",
+      "Bash(vercel env:*)",
+      "Bash(grep -r \"postMessage\\\\|SAVE_CASE\\\\|REQUEST_SAVE\" --include=*.tsx --include=*.ts --include=*.html --include=*.js .)",
+      "Bash(find /c/Users/Sebastian/vascular-planning-web/.claude/worktrees/friendly-lumiere/src/app/api -type f -name *.ts)",
+      "Bash(find /c/Users/Sebastian/vascular-planning-web/.claude/worktrees/friendly-lumiere -name *schema* -o -name *migration* -o -name *sql*)",
+      "Bash(node check-users.js)",
+      "mcp__be306a5e-05c6-42ea-9bb2-f9addf30ad13__get_project",
+      "Bash(ls \"/c/Users/Sebastian/vascular-planning-web/codigo herramientas fenestrados/\" 2>&1)",
+      "Bash(cd \"/c/Users/Sebastian/vascular-planning-web\" && ls -la \"codigo herramientas fenestrados/\" && echo \"--- Sizes ---\" && wc -l \"codigo herramientas fenestrados/Aorta EVAR \\(3\\).html\" \"codigo herramientas fenestrados/fenestrado ia \\(1\\).html\" .claude/worktrees/friendly-lumiere/public/tools/evar.html .claude/worktrees/friendly-lumiere/public/tools/fevar.html)",
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/codigo herramientas fenestrados/Aorta EVAR \\(3\\).html\" \"/c/Users/Sebastian/vascular-planning-web/.claude/worktrees/friendly-lumiere/public/tools/evar.html\")",
+      "Bash(cp \"/c/Users/Sebastian/vascular-planning-web/codigo herramientas fenestrados/fenestrado ia \\(1\\).html\" \"/c/Users/Sebastian/vascular-planning-web/.claude/worktrees/friendly-lumiere/public/tools/fevar.html\")",
+      "Bash(vercel --prod --yes)",
+      "mcp__a87be3d2-a907-4ccf-97b9-808e130459ad__deploy_to_vercel",
+      "mcp__a87be3d2-a907-4ccf-97b9-808e130459ad__list_deployments",
+      "Bash(curl -sI \"https://vascularplanning.com/tools/evar.html\")",
+      "Bash(curl -s \"https://vascularplanning.com/tools/evar.html\")",
+      "mcp__a87be3d2-a907-4ccf-97b9-808e130459ad__get_project",
+      "Bash(cd \"/c/Users/Sebastian/vascular-planning-web\" && cat ~/.local/share/com.vercel.cli/auth.json 2>/dev/null | head -3; echo \"---\"; ls ~/.local/share/com.vercel.cli/ 2>/dev/null; echo \"---\"; cat \"$HOME/AppData/Roaming/com.vercel.cli/auth.json\" 2>/dev/null | head -3)",
+      "Bash(curl -s \"https://vascularplanning.com/tools/fevar.html\")",
+      "Bash(git ls-remote *)",
+      "Bash(npx -y vercel@latest --prod --yes)",
+      "Bash(curl -s -o /tmp/evar.html -w \"Status: %{http_code}\\\\nSize: %{size_download} bytes\\\\n\" \"https://vascularplanning.com/tools/evar.html\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /tmp/fevar.html -w \"Status: %{http_code}\\\\nSize: %{size_download} bytes\\\\n\" \"https://vascularplanning.com/tools/fevar.html\")",
+      "Bash(rm /tmp/evar.html /tmp/fevar.html)"
     ]
   }
 }

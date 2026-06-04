@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchPayment, mpStatusToDb, verifyWebhookSignature } from '@/lib/mercadopago'
 import { getCourse } from '@/lib/courses'
+import { incrementCouponUses } from '@/lib/coupons'
 
 /**
  * MercadoPago Webhook handler.
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
   // 3. Find the purchase row by external_reference (= course_purchases.id UUID)
   const { data: row, error: lookupError } = await admin
     .from('course_purchases')
-    .select('id, status, user_id, course_id')
+    .select('id, status, user_id, course_id, coupon_id')
     .eq('id', externalReference)
     .maybeSingle()
 
@@ -124,6 +125,16 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error('[webhook] grantsModules update failed:', err)
         // Don't fail the webhook — purchase row is updated, modules can be retried later
+      }
+    }
+
+    // 6. Count coupon usage on approved purchase
+    const rowAny = row as { coupon_id?: string | null }
+    if (rowAny.coupon_id) {
+      try {
+        await incrementCouponUses(rowAny.coupon_id)
+      } catch (err) {
+        console.error('[webhook] incrementCouponUses failed:', err)
       }
     }
   }

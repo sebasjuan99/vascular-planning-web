@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
-import { COURSES, formatCLP } from '@/lib/courses'
+import { formatCLP } from '@/lib/courses'
+import { getHydratedCourses } from '@/lib/products'
 import { getUserCourseAccess } from '@/lib/access'
 import CourseCardActions from '@/components/dashboard/course-card-actions'
 
@@ -12,6 +13,10 @@ export default async function CursosDashboardPage() {
 
   const access = await getUserCourseAccess(supabase, user)
   const accessMap = new Map(access.map((a) => [a.courseId, a]))
+  // Show every product the user already owns even if inactive, plus all
+  // active products. Inactive + not-owned products are hidden.
+  const all = await getHydratedCourses()
+  const courses = all.filter((c) => c.active || accessMap.has(c.id))
 
   return (
     <div className="max-w-6xl">
@@ -25,7 +30,7 @@ export default async function CursosDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {COURSES.map((course) => {
+        {courses.map((course) => {
           const hasAccess = accessMap.has(course.id)
           const accessRecord = accessMap.get(course.id)
 
@@ -97,7 +102,13 @@ export default async function CursosDashboardPage() {
         })}
       </div>
 
-      {access.length === 0 && (
+      {courses.length === 0 && (
+        <div className="mt-8 bg-amber-50 border border-amber-100 rounded-xl p-5 text-sm text-amber-900">
+          No hay productos disponibles en este momento.
+        </div>
+      )}
+
+      {courses.length > 0 && access.length === 0 && (
         <div className="mt-8 bg-blue-50 border border-blue-100 rounded-xl p-5 text-sm text-blue-900">
           Compra cualquiera de los cursos para reservar tu cupo. Te notificaremos
           por correo cuando el contenido esté disponible.

@@ -1,8 +1,11 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { Users, Shield, BookOpen, Plus, Pencil, Trash2, Check, X, Search } from 'lucide-react'
+import { Users, Shield, BookOpen, Plus, Pencil, Trash2, Check, X, Search, Tag, Ticket, Gift } from 'lucide-react'
 import UserFormModal, { type UserFormData } from '@/components/admin/user-form-modal'
 import ConfirmDialog from '@/components/admin/confirm-dialog'
+import ProductsTab from '@/components/admin/products-tab'
+import CouponsTab from '@/components/admin/coupons-tab'
+import ManualGrantModal from '@/components/admin/manual-grant-modal'
 
 interface AdminUser {
   id: string
@@ -23,6 +26,7 @@ const AVAILABLE_MODULES = [
 ]
 
 const AVAILABLE_COURSES = [
+  { id: 'acceso-calculadoras', label: 'Calculadoras EVAR + FEVAR (Herramienta)' },
   { id: 'curso-evar', label: 'EVAR - Cirugía de Aorta' },
   { id: 'curso-fevar', label: 'FEVAR - Cirugía de Aorta' },
   { id: 'curso-tevar', label: 'TEVAR - Cirugía de Aorta' },
@@ -31,7 +35,7 @@ const AVAILABLE_COURSES = [
   { id: 'curso-accesos', label: 'Accesos Vasculares Guiados con Ultrasonido (VR)' },
 ]
 
-type Tab = 'users' | 'modules' | 'courses'
+type Tab = 'users' | 'modules' | 'courses' | 'products' | 'coupons'
 
 export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -44,6 +48,7 @@ export default function AdminPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
   const [editUser, setEditUser] = useState<AdminUser | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<AdminUser | null>(null)
+  const [grantUser, setGrantUser] = useState<AdminUser | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
 
   const fetchUsers = useCallback(async () => {
@@ -161,6 +166,8 @@ export default function AdminPage() {
     { id: 'users', label: 'Usuarios', icon: Users },
     { id: 'modules', label: 'Módulos', icon: Shield },
     { id: 'courses', label: 'Cursos', icon: BookOpen },
+    { id: 'products', label: 'Productos', icon: Tag },
+    { id: 'coupons', label: 'Cupones', icon: Ticket },
   ]
 
   if (loading) {
@@ -274,6 +281,13 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
+                          onClick={() => setGrantUser(user)}
+                          className="p-1.5 hover:bg-emerald-50 rounded-lg text-slate-500 hover:text-emerald-600 transition-colors"
+                          title="Otorgar acceso manual"
+                        >
+                          <Gift className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => { setFormMode('edit'); setEditUser(user); setFormOpen(true) }}
                           className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-blue-600 transition-colors"
                           title="Editar"
@@ -386,6 +400,12 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Products Tab */}
+      {tab === 'products' && <ProductsTab />}
+
+      {/* Coupons Tab */}
+      {tab === 'coupons' && <CouponsTab />}
+
       {/* Modals */}
       <UserFormModal
         open={formOpen}
@@ -403,6 +423,15 @@ export default function AdminPage() {
         onCancel={() => setConfirmDelete(null)}
         destructive
       />
+      {grantUser && (
+        <ManualGrantModal
+          userId={grantUser.id}
+          userName={grantUser.full_name}
+          userEmail={grantUser.email}
+          onClose={() => setGrantUser(null)}
+          onGranted={async () => { setGrantUser(null); await fetchUsers() }}
+        />
+      )}
     </div>
   )
 }
