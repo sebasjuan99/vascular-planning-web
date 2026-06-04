@@ -2,12 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronRight, X, Lock } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronRight, CreditCard, Loader2, Lock } from 'lucide-react'
 
 interface ToolCardProps {
   type: 'evar' | 'fevar'
   href: string
   hasAccess?: boolean
+  /** Course id whose purchase grants this module (e.g. 'acceso-calculadoras') */
+  unlockCourseId?: string
+  /** Formatted price label, e.g. "$50.000 CLP" */
+  unlockPriceLabel?: string
 }
 
 const config = {
@@ -33,69 +38,99 @@ const config = {
   }
 }
 
-export default function ToolCard({ type, href, hasAccess = false }: ToolCardProps) {
-  const [showPopup, setShowPopup] = useState(false)
-  const router = useRouter()
+export default function ToolCard({
+  type,
+  href,
+  hasAccess = false,
+  unlockCourseId,
+  unlockPriceLabel,
+}: ToolCardProps) {
   const c = config[type]
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleClick = () => {
-    if (hasAccess) {
-      router.push(href)
-    } else {
-      setShowPopup(true)
+  async function handleBuy() {
+    if (!unlockCourseId) return
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/payments/create-preference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: unlockCourseId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (data?.error === 'already-owned') {
+          // Edge case: server says we already have it — refresh to reflect
+          router.refresh()
+          return
+        }
+        throw new Error(data?.message || data?.error || 'Error al crear el pago')
+      }
+      if (!data.initPoint) throw new Error('No se recibió la URL de pago')
+      window.location.href = data.initPoint
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+      setLoading(false)
     }
   }
 
   return (
-    <>
-      <div className={`bg-white rounded-xl shadow-apple overflow-hidden border border-slate-100 ${c.borderHover} transition-all flex flex-col`}>
-        <div className={`h-2 bg-gradient-to-r ${c.gradient}`} />
-        <div className="p-6 flex flex-col gap-4 flex-1">
-          <div className={`w-12 h-12 rounded-xl ${c.badgeBg} flex items-center justify-center`}>
-            <span className={`text-xs font-black ${c.badgeText}`}>{c.title}</span>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">{c.title}</h3>
-            <p className={`text-xs font-semibold uppercase tracking-wide ${c.badgeText} mb-2`}>{c.subtitle}</p>
-            <p className="text-sm text-slate-500 leading-relaxed">{c.description}</p>
-          </div>
-          <button
-            onClick={handleClick}
-            className={`mt-auto ${hasAccess ? c.btnClass : 'bg-slate-400'} text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
-          >
-            {hasAccess ? `Iniciar ${c.title}` : 'Sin Acceso'}
-            {hasAccess ? <ChevronRight className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-          </button>
+    <div className={`bg-white rounded-xl shadow-apple overflow-hidden border border-slate-100 ${c.borderHover} transition-all flex flex-col`}>
+      <div className={`h-2 bg-gradient-to-r ${c.gradient}`} />
+      <div className="p-6 flex flex-col gap-4 flex-1">
+        <div className={`w-12 h-12 rounded-xl ${c.badgeBg} flex items-center justify-center`}>
+          <span className={`text-xs font-black ${c.badgeText}`}>{c.title}</span>
         </div>
-      </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900">{c.title}</h3>
+          <p className={`text-xs font-semibold uppercase tracking-wide ${c.badgeText} mb-2`}>{c.subtitle}</p>
+          <p className="text-sm text-slate-500 leading-relaxed">{c.description}</p>
+        </div>
 
-      {showPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-10 max-w-md mx-4 text-center relative">
+        {hasAccess ? (
+          <Link
+            href={href}
+            className={`mt-auto ${c.btnClass} text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
+          >
+            Iniciar {c.title}
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        ) : unlockCourseId && unlockPriceLabel ? (
+          <div className="mt-auto flex flex-col gap-2">
             <button
-              onClick={() => setShowPopup(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              type="button"
+              onClick={handleBuy}
+              disabled={loading}
+              className={`${c.btnClass} disabled:opacity-60 text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
             >
-              <X className="w-5 h-5" />
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Conectando con MercadoPago...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Pagar {unlockPriceLabel}
+                </>
+              )}
             </button>
-            <div className="w-16 h-16 rounded-full bg-[#0058bc]/10 flex items-center justify-center mx-auto mb-6">
-              <Lock className="w-8 h-8 text-[#0058bc]" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-3">
-              Acceso Restringido
-            </h3>
-            <p className="text-sm text-slate-400 leading-relaxed mb-8">
-              No tienes acceso a esta herramienta. Contacta a tu administrador para solicitar acceso.
-            </p>
-            <button
-              onClick={() => setShowPopup(false)}
-              className="clinical-gradient text-white font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Entendido
-            </button>
+            {error && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
+                {error}
+              </p>
+            )}
           </div>
-        </div>
-      )}
-    </>
+        ) : (
+          <div className="mt-auto bg-slate-100 text-slate-500 text-sm font-semibold py-3 px-5 rounded-full text-center flex items-center justify-center gap-2">
+            <Lock className="w-4 h-4" />
+            Sin Acceso
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

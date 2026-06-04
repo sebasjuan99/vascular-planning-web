@@ -70,15 +70,23 @@ export default function DashboardToolButtons({ modules = [] }: DashboardToolButt
             <h3 className="text-2xl font-bold text-slate-900 mb-3">
               Acceso Restringido
             </h3>
-            <p className="text-sm text-slate-400 leading-relaxed mb-8">
-              No tienes acceso a esta herramienta. Contacta a tu administrador para solicitar acceso.
+            <p className="text-sm text-slate-500 leading-relaxed mb-8">
+              Adquiere el producto <strong className="text-slate-900">Calculadoras EVAR + FEVAR</strong> para desbloquear estas herramientas.
             </p>
-            <button
-              onClick={() => setShowPopup(false)}
-              className="clinical-gradient text-white font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Entendido
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => { setShowPopup(false); router.push('/dashboard/planificar') }}
+                className="clinical-gradient text-white font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Ver opciones de compra
+              </button>
+              <button
+                onClick={() => setShowPopup(false)}
+                className="text-sm text-slate-500 hover:text-slate-700 font-medium"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}

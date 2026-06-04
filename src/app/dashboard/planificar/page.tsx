@@ -1,12 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import ToolCard from '@/components/dashboard/tool-card'
 import { Info } from 'lucide-react'
+import { getCourse, formatCLP } from '@/lib/courses'
 
 export default async function PlanificarPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const modules: string[] = user?.user_metadata?.modules || []
   const isAdmin = user?.user_metadata?.role === 'admin'
+
+  // Product that unlocks both calculators when purchased
+  const unlock = getCourse('acceso-calculadoras')
+  const unlockPriceLabel = unlock ? formatCLP(unlock.price) : undefined
 
   return (
     <div className="max-w-4xl">
@@ -16,8 +21,20 @@ export default async function PlanificarPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <ToolCard type="evar" href="/dashboard/planificar/evar" hasAccess={isAdmin || modules.includes('evar')} />
-        <ToolCard type="fevar" href="/dashboard/planificar/fevar" hasAccess={isAdmin || modules.includes('fevar')} />
+        <ToolCard
+          type="evar"
+          href="/dashboard/planificar/evar"
+          hasAccess={isAdmin || modules.includes('evar')}
+          unlockCourseId="acceso-calculadoras"
+          unlockPriceLabel={unlockPriceLabel}
+        />
+        <ToolCard
+          type="fevar"
+          href="/dashboard/planificar/fevar"
+          hasAccess={isAdmin || modules.includes('fevar')}
+          unlockCourseId="acceso-calculadoras"
+          unlockPriceLabel={unlockPriceLabel}
+        />
       </div>
 
       <div className="bg-white rounded-xl shadow-apple p-5 flex gap-3">
