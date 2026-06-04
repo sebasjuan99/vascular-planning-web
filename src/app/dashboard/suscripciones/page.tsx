@@ -93,7 +93,11 @@ function SubCard({
 }: { sub: SubscriptionRow; status: 'active' | 'inactive' }) {
   const course = COURSES.find((c) => c.id === sub.product_id)
   const title = course?.title ?? sub.product_id
-  const freqLabel = sub.frequency_type === 'months' ? '/mes' : sub.frequency_type === 'years' ? '/año' : '/día'
+  // MP only stores months/days; we infer /año from 12-month subs
+  const freqLabel =
+    sub.frequency_type === 'months' && sub.frequency_value === 12 ? '/año'
+    : sub.frequency_type === 'months' ? '/mes'
+    : '/día'
 
   const statusColors: Record<string, string> = {
     authorized: 'bg-emerald-50 text-emerald-700 border-emerald-200',

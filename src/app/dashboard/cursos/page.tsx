@@ -48,7 +48,7 @@ export default async function CursosDashboardPage() {
             {subscriptionCourses.map((course) => {
               const hasActive = activeSubProductIds.has(course.id)
               const ownsLegacy = accessMap.has(course.id)
-              const freq = course.subscription!.frequencyType === 'months' ? '/mes' : '/año'
+              const freq = course.subscription!.displayLabel
               return (
                 <div key={course.id}
                   className="bg-white rounded-2xl shadow-apple overflow-hidden border border-slate-100 flex flex-col">
@@ -59,7 +59,7 @@ export default async function CursosDashboardPage() {
                       <div className={`absolute inset-0 bg-gradient-to-br ${course.gradient}`} />
                     )}
                     <span className="absolute top-3 left-3 bg-cyan-700 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                      {course.subscription!.frequencyType === 'months' ? 'Mensual' : 'Anual'}
+                      {course.subscription!.displayLabel === '/mes' ? 'Mensual' : course.subscription!.displayLabel === '/año' ? 'Anual' : 'Semanal'}
                     </span>
                     {hasActive && (
                       <span className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
