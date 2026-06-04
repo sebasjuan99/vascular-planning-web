@@ -105,10 +105,10 @@ export async function POST(req: NextRequest) {
   const appUrl = `https://${host}`.replace(/\/+$/, '')
 
   // 3. Call MP API to create the preapproval.
-  //    MP rejects start_date if it's in the past, so we add a small buffer
-  //    to account for network latency between our server and MP's API.
+  //    MP rejects start_date if it's in the past; 5 min in the future
+  //    safely covers any network latency / clock skew.
   try {
-    const startDate = new Date(Date.now() + 2 * 60 * 1000).toISOString()
+    const startDate = new Date(Date.now() + 5 * 60 * 1000).toISOString()
     const result = await createSubscription({
       externalReference: inserted.id,
       payerEmail: user.email ?? 'unknown@vascularplanning.com',
@@ -118,7 +118,9 @@ export async function POST(req: NextRequest) {
       frequencyValue: course.subscription.frequencyValue,
       frequencyType: course.subscription.frequencyType,
       startDateIso: startDate,
-      backUrl: `${appUrl}/dashboard/suscripciones?return=1`,
+      // back_url must be a clean HTTPS URL. MP sandbox can choke on
+      // query strings, so we send a bare path.
+      backUrl: `${appUrl}/dashboard/suscripciones`,
       notificationUrl: `${appUrl}/api/subscriptions/webhook`,
       preapprovalPlanId: course.subscription.preapprovalPlanId,
     })
