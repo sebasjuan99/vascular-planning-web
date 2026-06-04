@@ -83,10 +83,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 })
   }
 
-  // 6. Create preference with MercadoPago
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    `${req.nextUrl.protocol}//${req.nextUrl.host}`
+  // 6. Build base URL for back_urls / notification_url
+  // MercadoPago requires valid HTTPS URLs. We always derive from the
+  // actual request host and force https, ignoring NEXT_PUBLIC_APP_URL
+  // (which can be stale or contain a wrong value like localhost).
+  const host =
+    req.headers.get('x-forwarded-host') ||
+    req.headers.get('host') ||
+    req.nextUrl.host
+  const appUrl = `https://${host}`.replace(/\/+$/, '')
 
   try {
     const result = await createPreference({
