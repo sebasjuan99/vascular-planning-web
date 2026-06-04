@@ -21,6 +21,7 @@ const dashboardLinks = [
   { label: 'Mis Casos', href: '/dashboard/mis-casos' },
   { label: 'Mis Cursos', href: '/dashboard/cursos' },
   { label: 'Herramienta Quirúrgica', href: '/dashboard/planificar' },
+  { label: 'Mis Suscripciones', href: '/dashboard/suscripciones' },
 ]
 
 export default function Navbar({ variant = 'public', userName }: NavbarProps) {

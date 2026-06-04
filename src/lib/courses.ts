@@ -9,6 +9,13 @@
 export type CourseCategory = 'Aorta' | 'Periférico' | 'Herramientas'
 export type GrantableModule = 'evar' | 'fevar'
 
+export interface SubscriptionSpec {
+  frequencyValue: number               // 1
+  frequencyType: 'months' | 'years'    // 'months' | 'years'
+  /** Optional MP preapproval_plan_id to associate the subscription with. */
+  preapprovalPlanId?: string
+}
+
 export interface Course {
   id: string                 // Stable identifier used in DB and admin panel
   slug: string               // URL-friendly (same as id for now)
@@ -23,23 +30,66 @@ export interface Course {
   currency: 'CLP'
   contentReady: boolean      // Toggle to true when actual content is launched
   /**
-   * Modules to grant on approved purchase. Webhook merges these into
-   * user_metadata.modules so the user immediately unlocks the
-   * corresponding simulator(s) under /dashboard/planificar/*.
+   * Modules to grant on approved purchase / active subscription.
+   * Webhook merges these into user_metadata.modules so the user
+   * immediately unlocks the corresponding simulator(s) under
+   * /dashboard/planificar/*.
    */
   grantsModules?: readonly GrantableModule[]
+  /**
+   * When defined, this is a recurring subscription product. Checkout
+   * uses MercadoPago Preapproval API instead of Preference, and access
+   * is granted only while the subscription is `authorized`.
+   */
+  subscription?: SubscriptionSpec
 }
 
 export const COURSE_PRICE_CLP = 897_000
 
 export const COURSES: Course[] = [
+  // ─── Subscription products (Calculators EVAR + FEVAR) ───────────────────
+  {
+    id: 'suscripcion-calculadoras-mensual',
+    slug: 'suscripcion-calculadoras-mensual',
+    title: 'Calculadoras EVAR + FEVAR — Mensual',
+    shortTitle: 'Calculadoras (Mensual)',
+    description:
+      'Acceso completo a las calculadoras EVAR y FEVAR con cobro mensual. Cancela cuando quieras.',
+    category: 'Herramientas',
+    image: '/images/vascular-planning-3d.png',
+    gradient: 'from-cyan-600 to-cyan-800',
+    price: 50_000,
+    currency: 'CLP',
+    contentReady: true,
+    grantsModules: ['evar', 'fevar'] as const,
+    subscription: { frequencyValue: 1, frequencyType: 'months' },
+  },
+  {
+    id: 'suscripcion-calculadoras-anual',
+    slug: 'suscripcion-calculadoras-anual',
+    title: 'Calculadoras EVAR + FEVAR — Anual',
+    shortTitle: 'Calculadoras (Anual)',
+    description:
+      'Acceso anual a las calculadoras EVAR y FEVAR con un 20% de descuento sobre el plan mensual. Equivale a $40.000/mes.',
+    category: 'Herramientas',
+    image: '/images/vascular-planning-3d.png',
+    gradient: 'from-cyan-700 to-blue-900',
+    price: 480_000,
+    currency: 'CLP',
+    contentReady: true,
+    grantsModules: ['evar', 'fevar'] as const,
+    subscription: { frequencyValue: 1, frequencyType: 'years' },
+  },
+  // ─── Legacy one-time bundle (kept for users who already purchased) ─────
+  // Hidden from catalog via products.active = false. Existing approved
+  // course_purchases rows continue granting access.
   {
     id: 'acceso-calculadoras',
     slug: 'acceso-calculadoras',
-    title: 'Acceso a Calculadoras EVAR + FEVAR',
-    shortTitle: 'Calculadoras EVAR + FEVAR',
+    title: 'Acceso a Calculadoras EVAR + FEVAR (pago único)',
+    shortTitle: 'Calculadoras (legacy)',
     description:
-      'Acceso completo a las herramientas de planificación quirúrgica EVAR y FEVAR. Diseña cada caso con precisión milimétrica directamente desde tu dashboard.',
+      'Producto legado. Reemplazado por las suscripciones mensual y anual.',
     category: 'Herramientas',
     image: '/images/vascular-planning-3d.png',
     gradient: 'from-cyan-600 to-cyan-800',

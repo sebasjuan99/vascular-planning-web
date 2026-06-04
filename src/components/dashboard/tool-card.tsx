@@ -1,18 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronRight, CreditCard, Loader2, Lock } from 'lucide-react'
+import { ChevronRight, CreditCard, Lock, Repeat } from 'lucide-react'
 
 interface ToolCardProps {
   type: 'evar' | 'fevar'
   href: string
   hasAccess?: boolean
-  /** Course id whose purchase grants this module (e.g. 'acceso-calculadoras') */
-  unlockCourseId?: string
-  /** Formatted price label, e.g. "$50.000 CLP" */
-  unlockPriceLabel?: string
+  /** Where to send the user to subscribe when they don't have access. */
+  subscribeHref?: string
+  /** Optional label shown next to the subscribe CTA (e.g. "desde $50.000/mes") */
+  subscribeFromLabel?: string
 }
 
 const config = {
@@ -42,40 +40,10 @@ export default function ToolCard({
   type,
   href,
   hasAccess = false,
-  unlockCourseId,
-  unlockPriceLabel,
+  subscribeHref,
+  subscribeFromLabel,
 }: ToolCardProps) {
   const c = config[type]
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleBuy() {
-    if (!unlockCourseId) return
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/payments/create-preference', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId: unlockCourseId }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        if (data?.error === 'already-owned') {
-          // Edge case: server says we already have it — refresh to reflect
-          router.refresh()
-          return
-        }
-        throw new Error(data?.message || data?.error || 'Error al crear el pago')
-      }
-      if (!data.initPoint) throw new Error('No se recibió la URL de pago')
-      window.location.href = data.initPoint
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      setLoading(false)
-    }
-  }
 
   return (
     <div className={`bg-white rounded-xl shadow-apple overflow-hidden border border-slate-100 ${c.borderHover} transition-all flex flex-col`}>
@@ -98,31 +66,19 @@ export default function ToolCard({
             Iniciar {c.title}
             <ChevronRight className="w-4 h-4" />
           </Link>
-        ) : unlockCourseId && unlockPriceLabel ? (
+        ) : subscribeHref ? (
           <div className="mt-auto flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={handleBuy}
-              disabled={loading}
-              className={`${c.btnClass} disabled:opacity-60 text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
+            <Link
+              href={subscribeHref}
+              className={`${c.btnClass} text-white text-sm font-semibold py-3 px-5 rounded-full text-center transition-all hover:shadow-lg flex items-center justify-center gap-2`}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Conectando con MercadoPago...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-4 h-4" />
-                  Pagar {unlockPriceLabel}
-                </>
-              )}
-            </button>
-            {error && (
-              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded px-3 py-2">
-                {error}
-              </p>
-            )}
+              <CreditCard className="w-4 h-4" />
+              {subscribeFromLabel ? `Suscríbete ${subscribeFromLabel}` : 'Suscríbete para desbloquear'}
+            </Link>
+            <p className="text-[11px] text-slate-500 inline-flex items-center gap-1 justify-center">
+              <Repeat className="w-3 h-3" />
+              Cobro recurrente. Cancela cuando quieras.
+            </p>
           </div>
         ) : (
           <div className="mt-auto bg-slate-100 text-slate-500 text-sm font-semibold py-3 px-5 rounded-full text-center flex items-center justify-center gap-2">
