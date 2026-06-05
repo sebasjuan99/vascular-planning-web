@@ -1,8 +1,11 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile'
 import { createClient } from '@/lib/supabase/client'
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -12,6 +15,8 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [validSession, setValidSession] = useState<boolean | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -25,6 +30,10 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError('')
 
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError('Por favor completa la verificación de seguridad')
+      return
+    }
     if (password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres')
       return
@@ -37,6 +46,9 @@ export default function ResetPasswordPage() {
     setLoading(true)
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
+
+    turnstileRef.current?.reset()
+    setCaptchaToken(null)
 
     if (error) {
       setError(error.message)
@@ -101,9 +113,21 @@ export default function ResetPasswordPage() {
                 className="w-full border border-vp-border rounded-md px-3 py-2 text-sm bg-vp-surface focus:outline-none focus:ring-2 focus:ring-vp-red/30"
               />
             </div>
+            {TURNSTILE_SITE_KEY && (
+              <div className="flex justify-center">
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={setCaptchaToken}
+                  onError={() => setCaptchaToken(null)}
+                  onExpire={() => setCaptchaToken(null)}
+                  options={{ theme: 'light', size: 'flexible' }}
+                />
+              </div>
+            )}
             {error && <p className="text-xs text-vp-red">{error}</p>}
             <button
-              type="submit" disabled={loading}
+              type="submit" disabled={loading || (!!TURNSTILE_SITE_KEY && !captchaToken)}
               className="w-full bg-vp-dark text-white text-sm font-semibold py-2.5 rounded-md hover:bg-vp-dark/90 disabled:opacity-50"
             >
               {loading ? 'Guardando...' : 'Actualizar contraseña'}
