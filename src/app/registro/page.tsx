@@ -11,6 +11,7 @@ export default function RegistroPage() {
     nombre: '', apellido: '', email: '',
     especialidad: '', institucion: '', password: ''
   })
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -24,6 +25,11 @@ export default function RegistroPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (form.password !== confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      return
+    }
 
     if (TURNSTILE_SITE_KEY && !captchaToken) {
       setError('Por favor completa la verificación de seguridad')
@@ -128,6 +134,15 @@ export default function RegistroPage() {
               />
             </div>
           ))}
+          <div>
+            <label className="text-xs font-semibold text-gray-700 block mb-1">Confirmar contraseña</label>
+            <input
+              type="password" required
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className="w-full border border-vp-border rounded-md px-3 py-2 text-sm bg-vp-surface focus:outline-none focus:ring-2 focus:ring-vp-red/30"
+            />
+          </div>
           {error && <p className="text-xs text-vp-red">{error}</p>}
           {TURNSTILE_SITE_KEY && !captchaError && (
             <div className="flex justify-center bg-slate-50 border border-slate-200 rounded-md py-2 min-h-[68px] items-center">
