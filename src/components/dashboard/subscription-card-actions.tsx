@@ -89,7 +89,7 @@ export default function SubscriptionCardActions({
         ) : (
           <>
             <CreditCard className="w-4 h-4" />
-            Suscribirse {priceLabel}{frequencyLabel}
+            Suscribirse {priceLabel} CLP{frequencyLabel}
           </>
         )}
       </button>
