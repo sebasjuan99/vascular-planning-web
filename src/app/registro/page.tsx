@@ -15,6 +15,7 @@ export default function RegistroPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaError, setCaptchaError] = useState(false)
   const turnstileRef = useRef<TurnstileInstance>(null)
 
   function update(field: string, value: string) {
@@ -128,19 +129,24 @@ export default function RegistroPage() {
             </div>
           ))}
           {error && <p className="text-xs text-vp-red">{error}</p>}
-          {TURNSTILE_SITE_KEY && (
-            <div className="flex justify-center">
+          {TURNSTILE_SITE_KEY && !captchaError && (
+            <div className="flex justify-center bg-slate-50 border border-slate-200 rounded-md py-2 min-h-[68px] items-center">
               <Turnstile
                 ref={turnstileRef}
                 siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={setCaptchaToken}
-                onError={() => setCaptchaToken(null)}
+                onSuccess={(token) => { setCaptchaToken(token); setCaptchaError(false) }}
+                onError={() => { setCaptchaToken(null); setCaptchaError(true) }}
                 onExpire={() => setCaptchaToken(null)}
                 options={{ theme: 'light', size: 'flexible' }}
               />
             </div>
           )}
-          <button type="submit" disabled={loading}
+          {captchaError && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+              No se pudo cargar la verificación de seguridad. Recarga la página e intenta de nuevo.
+            </p>
+          )}
+          <button type="submit" disabled={loading || (!!TURNSTILE_SITE_KEY && !captchaToken && !captchaError)}
             className="w-full bg-[#0058bc] text-white text-sm font-semibold py-2.5 rounded-md hover:bg-[#004493] disabled:opacity-50 mt-2">
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
