@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import ToolCard from '@/components/dashboard/tool-card'
 import { Info } from 'lucide-react'
@@ -39,14 +40,14 @@ export default async function PlanificarPage() {
           type="evar"
           href="/dashboard/planificar/evar"
           hasAccess={hasEvar}
-          subscribeHref="/dashboard/cursos"
+          productId="suscripcion-calculadoras-mensual"
           subscribeFromLabel={subscribeLabel}
         />
         <ToolCard
           type="fevar"
           href="/dashboard/planificar/fevar"
           hasAccess={hasFevar}
-          subscribeHref="/dashboard/cursos"
+          productId="suscripcion-calculadoras-mensual"
           subscribeFromLabel={subscribeLabel}
         />
       </div>

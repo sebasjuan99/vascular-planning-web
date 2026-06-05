@@ -3,6 +3,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Never ship source maps to the browser in production
+  productionBrowserSourceMaps: false,
   typescript: {
     ignoreBuildErrors: true,
   },

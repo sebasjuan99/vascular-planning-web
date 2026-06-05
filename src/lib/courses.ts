@@ -65,28 +65,11 @@ export const COURSES: Course[] = [
     category: 'Herramientas',
     image: '/images/vascular-planning-3d.png',
     gradient: 'from-cyan-600 to-cyan-800',
-    price: 50_000,
+    price: 25_000,
     currency: 'CLP',
     contentReady: true,
     grantsModules: ['evar', 'fevar'] as const,
     subscription: { frequencyValue: 1, frequencyType: 'months', displayLabel: '/mes' },
-  },
-  {
-    id: 'suscripcion-calculadoras-anual',
-    slug: 'suscripcion-calculadoras-anual',
-    title: 'Calculadoras EVAR + FEVAR — Anual',
-    shortTitle: 'Calculadoras (Anual)',
-    description:
-      'Acceso anual a las calculadoras EVAR y FEVAR con un 20% de descuento sobre el plan mensual. Equivale a $40.000/mes.',
-    category: 'Herramientas',
-    image: '/images/vascular-planning-3d.png',
-    gradient: 'from-cyan-700 to-blue-900',
-    price: 480_000,
-    currency: 'CLP',
-    contentReady: true,
-    grantsModules: ['evar', 'fevar'] as const,
-    // MP doesn't accept frequency_type='years'; annual = 12 months.
-    subscription: { frequencyValue: 12, frequencyType: 'months', displayLabel: '/año' },
   },
   // ─── Legacy one-time bundle (kept for users who already purchased) ─────
   // Hidden from catalog via products.active = false. Existing approved

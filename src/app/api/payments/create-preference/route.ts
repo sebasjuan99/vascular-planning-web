@@ -257,7 +257,6 @@ export async function POST(req: NextRequest) {
       {
         error: 'mercadopago-failure',
         message: humanMsg,
-        debug: fullDetails, // Temporary: expose details to client for debugging
       },
       { status: 502 }
     )
