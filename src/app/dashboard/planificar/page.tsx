@@ -25,7 +25,7 @@ export default async function PlanificarPage() {
   // Cheapest active subscription option for the "from $X/mes" hint
   const monthlyRow = await getProductRow('suscripcion-calculadoras-mensual')
   const subscribeLabel = monthlyRow?.active
-    ? `desde ${formatCLP(monthlyRow.price)}/mes`
+    ? `desde ${formatCLP(monthlyRow.price)} CLP/mes`
     : undefined
 
   return (

@@ -24,7 +24,7 @@ export default function PlanningHero() {
           href="/registro"
           className="inline-flex items-center gap-2 bg-white text-[#0058bc] font-bold text-lg px-8 py-4 rounded-full shadow-lg hover:bg-blue-50 transition-all hover:shadow-xl"
         >
-          Suscríbete — $25.000/mes
+          Suscríbete — $25.000 CLP/mes
         </Link>
       </div>
     </section>
