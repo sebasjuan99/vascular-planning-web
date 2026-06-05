@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function PlanningHero() {
   return (
     <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-black">
@@ -15,9 +17,15 @@ export default function PlanningHero() {
         <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-tight mb-6">
           Planning Tool
         </h1>
-        <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed mb-10">
           Herramientas de medición EVAR y FEVAR para planificación endovascular de alta precisión.
         </p>
+        <Link
+          href="/registro"
+          className="inline-flex items-center gap-2 bg-white text-[#0058bc] font-bold text-lg px-8 py-4 rounded-full shadow-lg hover:bg-blue-50 transition-all hover:shadow-xl"
+        >
+          Suscríbete — $25.000/mes
+        </Link>
       </div>
     </section>
   )

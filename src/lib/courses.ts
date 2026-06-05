@@ -59,7 +59,7 @@ export const COURSES: Course[] = [
     id: 'suscripcion-calculadoras-mensual',
     slug: 'suscripcion-calculadoras-mensual',
     title: 'Calculadoras EVAR + FEVAR — Mensual',
-    shortTitle: 'Calculadoras (Mensual)',
+    shortTitle: 'Calculadoras FEVAR y EVAR',
     description:
       'Acceso completo a las calculadoras EVAR y FEVAR con cobro mensual. Cancela cuando quieras.',
     category: 'Herramientas',

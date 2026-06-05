@@ -38,12 +38,12 @@ export default function RegistroPage() {
       password: form.password,
       options: {
         ...(captchaToken ? { captchaToken } : {}),
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
         data: {
           full_name: `${form.nombre} ${form.apellido}`,
           specialty: form.especialidad,
           institution: form.institucion,
-          approved: false,
-          approved_at: null,
+          approved: true,
         }
       }
     })
@@ -78,16 +78,16 @@ export default function RegistroPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-vp-surface">
         <div className="bg-white border border-vp-border rounded-xl p-8 w-full max-w-sm text-center shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <span className="text-green-600 text-xl">✓</span>
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+            <span className="text-[#0058bc] text-xl">✉</span>
           </div>
-          <h2 className="text-lg font-bold text-vp-dark mb-2">Solicitud enviada</h2>
+          <h2 className="text-lg font-bold text-vp-dark mb-2">Revisa tu correo</h2>
           <p className="text-sm text-vp-muted">
-            Recibirás un correo cuando tu acceso sea aprobado (24–48h).
+            Te enviamos un link de confirmación a <strong>{form.email}</strong>. Haz clic en él para activar tu cuenta y acceder a las herramientas.
           </p>
-          <Link href="/login" className="block mt-4 text-xs text-vp-red font-semibold hover:underline">
-            Volver al inicio
-          </Link>
+          <p className="text-xs text-vp-muted mt-3">
+            Si no lo ves, revisa la carpeta de spam.
+          </p>
         </div>
       </div>
     )
@@ -97,8 +97,8 @@ export default function RegistroPage() {
     <div className="min-h-screen flex items-center justify-center bg-vp-surface py-10">
       <div className="bg-white border border-vp-border rounded-xl p-8 w-full max-w-sm shadow-sm">
         <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-vp-dark">Solicitar acceso</h1>
-          <p className="text-xs text-vp-muted mt-1">Tu solicitud será revisada en 24–48h</p>
+          <h1 className="text-xl font-bold text-vp-dark">Crear cuenta</h1>
+          <p className="text-xs text-vp-muted mt-1">Accede a las calculadoras FEVAR y EVAR</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -141,16 +141,10 @@ export default function RegistroPage() {
             </div>
           )}
           <button type="submit" disabled={loading}
-            className="w-full bg-vp-red text-white text-sm font-semibold py-2.5 rounded-md hover:bg-vp-red/90 disabled:opacity-50 mt-2">
-            {loading ? 'Enviando...' : 'Enviar solicitud'}
+            className="w-full bg-[#0058bc] text-white text-sm font-semibold py-2.5 rounded-md hover:bg-[#004493] disabled:opacity-50 mt-2">
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
-
-        <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-          <p className="text-xs text-yellow-800 text-center">
-            Tu acceso será aprobado por un administrador. Recibirás confirmación por correo.
-          </p>
-        </div>
 
         <p className="text-center text-xs text-vp-muted mt-4">
           ¿Ya tienes cuenta?{' '}

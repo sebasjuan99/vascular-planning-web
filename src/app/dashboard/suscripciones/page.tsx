@@ -46,7 +46,7 @@ export default async function MisSuscripcionesPage() {
 
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Mis suscripciones</h1>
       <p className="text-sm text-slate-500 mb-8">
-        Gestiona tus suscripciones activas y revisa el historial de pagos.
+        Gestiona tus suscripciones activas y fechas de renovación.
       </p>
 
       {subs.length === 0 && (
@@ -72,18 +72,6 @@ export default async function MisSuscripcionesPage() {
         </section>
       )}
 
-      {others.length > 0 && (
-        <section>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-            Historial
-          </h2>
-          <div className="space-y-3">
-            {others.map((s) => (
-              <SubCard key={s.id} sub={s} status="inactive" />
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   )
 }
@@ -93,11 +81,13 @@ function SubCard({
 }: { sub: SubscriptionRow; status: 'active' | 'inactive' }) {
   const course = COURSES.find((c) => c.id === sub.product_id)
   const title = course?.title ?? sub.product_id
-  // MP only stores months/days; we infer /año from 12-month subs
+  // Prefer the catalog displayLabel (works regardless of frequency_value).
+  // Fall back to frequency-based inference for legacy/unknown products.
   const freqLabel =
-    sub.frequency_type === 'months' && sub.frequency_value === 12 ? '/año'
+    course?.subscription?.displayLabel ??
+    (sub.frequency_type === 'months' && sub.frequency_value === 12 ? '/año'
     : sub.frequency_type === 'months' ? '/mes'
-    : '/día'
+    : '/día')
 
   const statusColors: Record<string, string> = {
     authorized: 'bg-emerald-50 text-emerald-700 border-emerald-200',
